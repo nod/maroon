@@ -58,8 +58,13 @@ class Model(object):
         self._collection.insert(self.to_d)
 
     def to_dict(self):
-         return dict(
-            (k,v) for k,v in self.__dict__.iteritems() if isinstance(v,Field)
+        '''
+        Build a dictionary from all non-callable entities attached to our object.
+        This will return any Fields on the object, but also any object members added
+        after the fact.
+        '''
+        return dict(
+            (k,v) for k,v in self.__dict__.iteritems() if not callable(v)
             )
 
     @classmethod
