@@ -2,17 +2,17 @@
 
 
 def _getval(v):
-    return v._value if isinstance(Field, v) else v
+    '''
+    decides to return a flat value or the _value member of a Field object
+    '''
+    try: return v._value if isinstance(v, Field) else v
+    except TypeError:return v
 
 
 class Field(object):
 
-    @property
-    def _name(self):
-        return self.__name or self.__name__
-
-    def __init__(self, name=None):
-        self.__name = name
+    def __init__(self, name):
+        self._name = name
         self._value = None
 
     def _assign(self,v):
@@ -22,27 +22,26 @@ class Field(object):
     def _validate(self):
         pass
 
-    def __lt__(self, v): return {'$lt':_getval(v)}
-    def __le__(self, v): return {'$lte':_getval(v)}
-    def __gt__(self, v): return {'$gt':_getval(v)}
-    def __ge__(self, v): return {'$gte':_getval(v)}
-    def __eq__(self, v): return {'$eq':_getval(v)}
-    def __ne__(self, v): return {'$ne':_getval(v)}
+    def __lt__(self, v): return (self._name, {'$lt':_getval(v)})
+    def __le__(self, v): return (self._name, {'$lte':_getval(v)})
+    def __gt__(self, v): return (self._name, {'$gt':_getval(v)})
+    def __ge__(self, v): return (self._name, {'$gte':_getval(v)})
+    def __eq__(self, v): return (self._name, {'$eq':_getval(v)})
+    def __ne__(self, v): return (self._name, {'$ne':_getval(v)})
 
 
 class IntField(Field):
     def _validate(self, val):
         if int(val) != val: # will raise ValueError if bogus
-            raise ValueError("bogus value not int")
+            raise ValueError("value not int")
 
 
 class Model(object):
     _collection = None
     _fields = []
-    _db = None
 
-    def __init__(self, db):
-        self._db = db
+    def __init__(self, collection):
+        self._collection = collection
 
     def __setattr__(self, n, v):
         '''
@@ -50,12 +49,17 @@ class Model(object):
         field's value member and not override the field itself.  Otherwise,
         just assign that value to the requested member.
         '''
-        field = getattr(self,n)
-        if field and isinstance(field, Field): field._assign(v)
+        field = getattr(self,n) if hasattr(self,n) else None
+        if field and isinstance(field, Field):
+            if not self.__dict__.has_key(n):
+                self.__dict__[n] = field.__class__(n)
+            self.__dict__[n]._assign(v)
         else: self.__dict__[n] = v
 
     def save(self):
-        self._collection.insert(self.to_d)
+        d = self.to_dict()
+        self._collection.insert(d)
+        self._id = d['_id'] # save the unique id from mongo
 
     def to_dict(self):
         '''
@@ -63,9 +67,10 @@ class Model(object):
         This will return any Fields on the object, but also any object members added
         after the fact.
         '''
-        return dict(
-            (k,v) for k,v in self.__dict__.iteritems() if not callable(v)
+        d = dict(
+            (k,_getval(v)) for k,v in self.__dict__.iteritems() if not callable(v)
             )
+        return d
 
     @classmethod
     def all(self):
@@ -73,7 +78,10 @@ class Model(object):
 
     @classmethod
     def find(self, *args, **kwargs):
-        return self._collection.find(  )
-
+        _q = {}
+        for k,v in args:
+            if k not in _q: _q[k] = v
+            else: _q[k].update(v)
+        return self._collection.find(_q)
 
 
