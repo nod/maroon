@@ -1,0 +1,27 @@
+
+maroon
+======
+
+A simplified object relational model written in Python.
+
+contrived example
+-----------------
+
+	from maroon import Model, IntField
+   
+    ... setup mongo connection ...
+
+	class SimpleModel(Model):
+		someint = IntField('someint')
+
+	# creation
+    s_m = SimpleModel(db_collection)
+	s_m.someint = 23
+	s_m.save()
+
+	# retrieval
+	si = SimpleModel.someint
+	results = SimpleModel.find(si > 19)
+
+
+That's it for now.
