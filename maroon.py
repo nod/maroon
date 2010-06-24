@@ -1,5 +1,7 @@
-
-
+'''
+maroon models - simplified object-relational mapper for Python and MongoDB
+by Jeremy Kelley <jeremy@33ad.org>
+'''
 
 def _getval(v):
     '''
