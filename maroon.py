@@ -3,6 +3,12 @@ maroon models - simplified object-relational mapper for Python and MongoDB
 by Jeremy Kelley <jeremy@33ad.org>
 '''
 
+
+from collections import defaultdict
+
+class BogusQuery(Exception): pass
+
+
 def _getval(v):
     '''
     decides to return a flat value or the _value member of a Field object
@@ -11,11 +17,33 @@ def _getval(v):
     except TypeError:return v
 
 
+class Q(object):
+
+    def __init__(self, d):
+        self.data = defaultdict(dict, d)
+
+    def __and__(self, v):
+        for k in v.data:
+            if not hasattr(v.data[k], 'items') and k in self.data:
+                raise BogusQuery(
+                    "and'ing 2 terms with diff values will never be true"
+                    )
+            try: self.data[k].update(v.data[k])
+            except: self.data.update(v.data)
+        return self
+
+    def __or__(self, v):
+        self.data = {'$or':[self.data, v.data]}
+        return self
+
+
 class Field(object):
 
     def __init__(self, name):
         self._name = name
         self._value = None
+        self._and = []
+        self._or = []
 
     def _assign(self,v):
         self._validate(v)
@@ -24,18 +52,26 @@ class Field(object):
     def _validate(self):
         pass
 
-    def __lt__(self, v): return (self._name, {'$lt':_getval(v)})
-    def __le__(self, v): return (self._name, {'$lte':_getval(v)})
-    def __gt__(self, v): return (self._name, {'$gt':_getval(v)})
-    def __ge__(self, v): return (self._name, {'$gte':_getval(v)})
-    def __eq__(self, v): return (self._name, {'$eq':_getval(v)})
-    def __ne__(self, v): return (self._name, {'$ne':_getval(v)})
+    def __eq__(self, v): return Q({self._name: _getval(v)})
+    def __ge__(self, v): return Q({self._name: {'$gte':_getval(v)}})
+    def __gt__(self, v): return Q({self._name: {'$gt':_getval(v)}})
+    def __le__(self, v): return Q({self._name: {'$lte':_getval(v)}})
+    def __lt__(self, v): return Q({self._name: {'$lt':_getval(v)}})
+    def __ne__(self, v): return Q({self._name: {'$ne':_getval(v)}})
 
+# ADD def for $all to peek in doc members with arrays  TODO
 
 class IntField(Field):
     def _validate(self, val):
         if int(val) != val: # will raise ValueError if bogus
             raise ValueError("value not int")
+
+
+class ListField(Field):
+    def _validate(self, val):
+        if not hasattr(val, '__iter__'): # will raise ValueError if bogus
+            raise ValueError("value not list")
+
 
 
 class Model(object):
@@ -65,9 +101,9 @@ class Model(object):
 
     def to_dict(self):
         '''
-        Build a dictionary from all non-callable entities attached to our object.
-        This will return any Fields on the object, but also any object members added
-        after the fact.
+        Build a dictionary from all non-callable entities attached to our
+        object.  This will return any Fields on the object, but also any object
+        members added after the fact.
         '''
         d = dict(
             (k,_getval(v)) for k,v in self.__dict__.iteritems() if not callable(v)
@@ -79,11 +115,11 @@ class Model(object):
         return self._collection.find()
 
     @classmethod
-    def find(self, *args, **kwargs):
-        _q = {}
-        for k,v in args:
-            if k not in _q: _q[k] = v
-            else: _q[k].update(v)
-        return self._collection.find(_q)
+    def find(self, q=None):
+        return self._collection.find(q.data if q else None)
+
+    def delete(self):
+        if hasattr(self, '_id'):
+            self._collection.remove({'_id':self._id})
 
 
