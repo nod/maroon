@@ -73,6 +73,11 @@ class ListField(Field):
             raise ValueError("value not list")
 
 
+class TextField(Field):
+    def _validate(self, val):
+        if unicode(val) != val: # will raise ValueError if bogus
+            raise ValueError("value not text")
+
 
 class Model(object):
     _collection = None
