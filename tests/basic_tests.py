@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import sys
+sys.path.append("..")
+
 import pymongo
 import unittest
 
@@ -28,7 +31,6 @@ class ComplexModel(Model):
     '''
     i1 = IntField('i1')
     bag = ListField('bag')
-
 
 
 class TestBasicModelCreationAndAssignment(unittest.TestCase):
