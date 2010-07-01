@@ -3,7 +3,7 @@ maroon models - simplified object-relational mapper for Python and MongoDB
 by Jeremy Kelley <jeremy@33ad.org>
 '''
 
-
+import re
 from collections import defaultdict
 
 class BogusQuery(Exception): pass
