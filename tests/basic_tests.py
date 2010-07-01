@@ -18,7 +18,7 @@ db_collection = None # some global love
 
 class SimpleModel(Model):
     '''
-    A very simple example of a model consisting of ONLY ONE member.  This will
+    A very simple example of a model consisting of a few simple members.  This will
     be used to test simple assignment and also dictionary exporting
     '''
     i1 = IntField('i1')
