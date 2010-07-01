@@ -6,7 +6,7 @@ sys.path.append("..")
 import pymongo
 import unittest
 
-from maroon import Model, ListField, IntField, TextField, Field, BogusQuery
+from maroon import Model, IntField, Field, BogusQuery
 
 
 # README
@@ -23,15 +23,6 @@ class SimpleModel(Model):
     '''
     i1 = IntField('i1')
     i2 = IntField('i2')
-    t1 = TextField('t1')
-
-
-class ComplexModel(Model):
-    '''
-    a bit more complex model to test the other field types
-    '''
-    i1 = IntField('i1')
-    bag = ListField('bag')
 
 
 class TestBasicModelCreationAndAssignment(unittest.TestCase):
@@ -89,36 +80,6 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o2.i1 = 1
         self.o2.save()
         self.failUnless( 2 == SimpleModel.all().count() )
-
-    def test_unicode(self):
-        kawaii = u'\u53ef\u611b\u3044!'
-        self.o1.t1 = kawaii
-        self.o1.i1 = 7
-        self.o1.save()
-        self.o2.t1 = "cute!"
-        self.o2.i1 = 4
-        self.o2.save()
-        
-        self.assertEqual(kawaii, self.o1.t1._value)
-        results = SimpleModel.find( SimpleModel.t1==kawaii )
-        self.assertEqual(1, results.count())
-        self.assertEqual(7, results[0]['i1'])
-        self.assertEqual(kawaii, results[0]['t1'])
-        
-        results = SimpleModel.find( SimpleModel.i1==7 )
-        self.assertEqual(kawaii, results[0]['t1'])
-
-    def test_text_sort(self):
-        self.o1.t1="apocrypha"
-        self.o1.save()
-        self.o2.t1="bible"
-        self.o2.save()
-        self.o3.t1="spam"
-        self.o3.save()
-        t1 = SimpleModel.t1
-        self.failUnless( 1 == SimpleModel.find( (t1>'bible') ).count() )
-        self.failUnless( 2 == SimpleModel.find( (t1<='bible') ).count() )
-        self.failUnless( 0 == SimpleModel.find( (t1<'apocrypha') ).count() )
 
     def test_simple_queries(self):
         self.o1.i1 = 10
