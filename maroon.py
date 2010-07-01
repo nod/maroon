@@ -3,7 +3,7 @@ maroon models - simplified object-relational mapper for Python and MongoDB
 by Jeremy Kelley <jeremy@33ad.org>
 '''
 
-
+import re
 from collections import defaultdict
 
 class BogusQuery(Exception): pass
@@ -70,6 +70,14 @@ class ListField(Field):
         if not hasattr(val, '__iter__'): # will raise ValueError if bogus
             raise ValueError("value not list")
 
+
+class TextField(Field):
+    def _validate(self, val):
+        if unicode(val) != val: # will raise ValueError if bogus
+            raise ValueError("value not text")
+
+    def __floordiv__(self, pattern):
+        return Q({self._name: re.compile(pattern)})
 
 
 class Model(object):

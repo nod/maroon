@@ -6,7 +6,7 @@ sys.path.append("..")
 import pymongo
 import unittest
 
-from maroon import Model, ListField, IntField, Field, BogusQuery
+from maroon import Model, IntField, Field, BogusQuery
 
 
 # README
@@ -18,19 +18,11 @@ db_collection = None # some global love
 
 class SimpleModel(Model):
     '''
-    A very simple example of a model consisting of ONLY ONE member.  This will
+    A very simple example of a model consisting of a few simple members.  This will
     be used to test simple assignment and also dictionary exporting
     '''
     i1 = IntField('i1')
     i2 = IntField('i2')
-
-
-class ComplexModel(Model):
-    '''
-    a bit more complex model to test the other field types
-    '''
-    i1 = IntField('i1')
-    bag = ListField('bag')
 
 
 class TestBasicModelCreationAndAssignment(unittest.TestCase):
