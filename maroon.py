@@ -42,8 +42,6 @@ class Field(object):
     def __init__(self, name):
         self._name = name
         self._value = None
-        self._and = []
-        self._or = []
 
     def _assign(self,v):
         self._validate(v)
@@ -76,7 +74,6 @@ class ListField(Field):
 
 class Model(object):
     _collection = None
-    _fields = []
 
     def __init__(self, collection):
         self._collection = collection
