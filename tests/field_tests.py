@@ -87,16 +87,35 @@ class TestComplexModelCreationAndAssignment(unittest.TestCase):
     def test_text_regex(self):
         self.o1.t1="dovefoot"
         self.o1.save()
-        self.o2.t1="football"
+        self.o2.t1="Football"
         self.o2.save()
         self.o3.t1="not foolhardy"
         self.o3.save()
         t1 = ComplexModel.t1
-        regex = re.compile('.foo')
-        self.failUnless( 2 == ComplexModel.find( (t1//regex) ).count() )
-        self.failUnless( 3 == ComplexModel.find( (t1//'foo') ).count() )
-        self.failUnless( 1 == ComplexModel.find( (t1//'^foo') ).count() )
+        regex = re.compile('foo',re.I)
+        self.failUnless( 3 == ComplexModel.find( (t1//regex) ).count() )
+        self.failUnless( 2 == ComplexModel.find( (t1//'foo') ).count() )
+        self.failUnless( 1 == ComplexModel.find( (t1//'foot$') ).count() )
         self.failUnless( 1 == ComplexModel.find( (t1//'\sfoo') ).count() )
+
+    def test_text_evil(self):
+        evil1=r"''\\x42'gig"
+        evil2=r'""\\"em'
+        evil3=r'//{{%ags'
+        self.o1.t1=evil1
+        self.o1.save()
+        self.o2.t1=evil2
+        self.o2.save()
+        self.o3.t1=evil3
+        self.o3.save()
+        t1 = ComplexModel.t1
+        results = ComplexModel.find( t1//'gig' )
+        self.assertEqual(evil1, results[0]['t1'])
+        results = ComplexModel.find( t1//'em' )
+        self.assertEqual(evil2, results[0]['t1'])
+        results = ComplexModel.find( t1//'em' )
+        self.assertEqual(evil2, results[0]['t1'])
+        self.failUnless(1 == ComplexModel.find( t1//'^//\\{{2}' ).count() )
 
 
 if __name__ == '__main__':
