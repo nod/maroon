@@ -95,9 +95,10 @@ class Model(object):
         field's value member and not override the field itself.  Otherwise,
         just assign that value to the requested member.
         '''
-        field = getattr(self,n) if hasattr(self,n) else None
+        field = getattr(self,n,None)
         if field and isinstance(field, Field):
             if not self.__dict__.has_key(n):
+                #call the field's constructor, and puts the new object in self
                 self.__dict__[n] = field.__class__(n)
             self.__dict__[n]._assign(v)
         else: self.__dict__[n] = v
