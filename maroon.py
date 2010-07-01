@@ -78,6 +78,9 @@ class TextField(Field):
         if unicode(val) != val: # will raise ValueError if bogus
             raise ValueError("value not text")
 
+    def __floordiv__(self, pattern):
+        return Q({self._name: re.compile(pattern)})
+
 
 class Model(object):
     _collection = None
