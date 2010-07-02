@@ -88,7 +88,7 @@ class Model(object):
         if not self_dict.has_key(name):
             field = getattr(type(self), name, None)
             if field and isinstance(field, Field):
-                raise AttributeError()
+                return None
         return object.__getattribute__(self,name)
 
     def __setattr__(self, n, v):
