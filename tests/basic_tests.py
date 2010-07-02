@@ -31,9 +31,6 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o2.delete()
         self.o3.delete()
 
-    def test_attrs(self):
-        self.failUnless( isinstance(self.o1.i1, Field) )
-
     def test_delete(self):
         self.o1.i1 = 2
         self.o1.save()
@@ -47,11 +44,16 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
     def test_simple_assign_obvious(self):
         # test for an obvious integer
         self.o1.i1 = 5
-        self.assertEqual(self.o1.i1._value, 5)
+        self.assertEqual(self.o1.i1, 5)
 
         # now test for changing to an obvious integer 
         self.o1.i1 = 9
-        self.assertEqual(self.o1.i1._value, 9)
+        self.assertEqual(self.o1.i1, 9)
+    
+    def test_simple_arith(self):
+        self.o1.i1 = 6
+        self.failUnless( 7 == 1+self.o1.i1)
+        self.failUnless( self.o1.i1 > 3)
 
     def test_simple_assign_to_multiple(self):
         '''
@@ -61,11 +63,26 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         '''
         self.o1.i1 = 8
         self.o2.i1 = 3
-        self.assertNotEqual(self.o1.i1._value, self.o2.i1._value)
+        self.assertNotEqual(self.o1.i1, self.o2.i1)
 
     def test_dict_creation(self):
         self.o1.i1 = 1
         self.failUnlessEqual(self.o1.to_dict(), {'i1':1})
+
+    def test_init_from_dict(self):
+        self.o2.i1 = 3
+        self.o2.i2 = 7
+        self.o2.save()
+        self.o3.i1 = 8
+        self.o3.save()
+        i1 = SimpleModel.i1
+        obj1 = SimpleModel({'i1':2})
+        obj2 = SimpleModel(SimpleModel.find( (i1==3) )[0])
+        obj3 = SimpleModel(SimpleModel.find( (i1==8) )[0])
+        self.failUnless( 2 == obj1.i1 )
+        self.failUnless( 3 == obj2.i1 )
+        self.failUnless( 7 == obj2.i2 )
+        self.failUnless( 8 == obj3.i1 )
 
     def test_simple_save(self):
         self.o1.i1 = 44

@@ -18,13 +18,6 @@ def connect(host='localhost', port=27017, db_name='maroon'):
     conf['connection'] = pymongo.Connection(host,port)
     conf['database'] = getattr(conf['connection'], db_name)
 
-def _getval(v):
-    '''
-    decides to return a flat value or the _value member of a Field object
-    '''
-    try: return v._value if isinstance(v, Field) else v
-    except TypeError:return v
-
 
 class Q(object):
 
@@ -50,21 +43,16 @@ class Field(object):
 
     def __init__(self, name):
         self._name = name
-        self._value = None
-
-    def _assign(self,v):
-        self._validate(v)
-        self._value = v
 
     def _validate(self):
         pass
 
-    def __eq__(self, v): return Q({self._name: _getval(v)})
-    def __ge__(self, v): return Q({self._name: {'$gte':_getval(v)}})
-    def __gt__(self, v): return Q({self._name: {'$gt':_getval(v)}})
-    def __le__(self, v): return Q({self._name: {'$lte':_getval(v)}})
-    def __lt__(self, v): return Q({self._name: {'$lt':_getval(v)}})
-    def __ne__(self, v): return Q({self._name: {'$ne':_getval(v)}})
+    def __eq__(self, v): return Q({self._name: v})
+    def __ge__(self, v): return Q({self._name: {'$gte':v}})
+    def __gt__(self, v): return Q({self._name: {'$gt':v}})
+    def __le__(self, v): return Q({self._name: {'$lte':v}})
+    def __lt__(self, v): return Q({self._name: {'$lt':v}})
+    def __ne__(self, v): return Q({self._name: {'$ne':v}})
 
 # ADD def for $all to peek in doc members with arrays  TODO
 
@@ -90,22 +78,24 @@ class TextField(Field):
 
 
 class Model(object):
-    def __init__(self):
-        pass
+    def __init__(self, from_dict=None, **kwargs):
+        if from_dict:
+            self.from_dict(from_dict)
+        self.from_dict(kwargs)
+
+    def __getattribute__(self, name):
+        self_dict = object.__getattribute__(self,'__dict__')
+        if not self_dict.has_key(name):
+            field = getattr(type(self), name, None)
+            if field and isinstance(field, Field):
+                raise AttributeError()
+        return object.__getattribute__(self,name)
 
     def __setattr__(self, n, v):
-        '''
-        Capture an assignment if it's to a Field type and have it go to the
-        field's value member and not override the field itself.  Otherwise,
-        just assign that value to the requested member.
-        '''
-        field = getattr(self,n,None)
+        field = getattr(type(self),n,None)
         if field and isinstance(field, Field):
-            if not self.__dict__.has_key(n):
-                #call the field's constructor, and puts the new object in self
-                self.__dict__[n] = field.__class__(n)
-            self.__dict__[n]._assign(v)
-        else: self.__dict__[n] = v
+            field._validate(v)
+        self.__dict__[n] = v
 
     def save(self):
         d = self.to_dict()
@@ -118,10 +108,12 @@ class Model(object):
         object.  This will return any Fields on the object, but also any object
         members added after the fact.
         '''
-        d = dict(
-            (k,_getval(v)) for k,v in self.__dict__.iteritems() if not callable(v)
-            )
+        d = dict( (k,v) for k,v in self.__dict__.iteritems() if not callable(v) )
         return d
+
+    def from_dict(self,d):
+        for (k,v) in d.iteritems():
+            setattr(self,k,v)
 
     @classmethod
     def collection(self):

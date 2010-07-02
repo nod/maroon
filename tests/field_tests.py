@@ -56,7 +56,7 @@ class TestComplexModelCreationAndAssignment(unittest.TestCase):
         self.o2.i1 = 4
         self.o2.save()
         
-        self.assertEqual(kawaii, self.o1.t1._value)
+        self.assertEqual(kawaii, self.o1.t1)
         results = ComplexModel.find( ComplexModel.t1==kawaii )
         self.assertEqual(1, results.count())
         self.assertEqual(7, results[0]['i1'])
