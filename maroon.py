@@ -4,10 +4,23 @@ by Jeremy Kelley <jeremy@33ad.org>
 '''
 
 import re
+import pymongo
 from collections import defaultdict
 
 class BogusQuery(Exception): pass
 
+conf = {
+    'host': 'localhost',
+    'port': 27017,
+    'db_name': 'maroon',
+    'database': None,
+}
+
+def connect(host=None, port=None, db_name=None):
+    host = host or conf['host']
+    port = port or conf['port']
+    db_name = db_name or conf['db_name']
+    conf['database'] = getattr(pymongo.Connection(host,port), db_name)
 
 def _getval(v):
     '''
@@ -81,10 +94,8 @@ class TextField(Field):
 
 
 class Model(object):
-    _collection = None
-
     def __init__(self, collection):
-        self._collection = collection
+        pass
 
     def __setattr__(self, n, v):
         '''
@@ -102,7 +113,7 @@ class Model(object):
 
     def save(self):
         d = self.to_dict()
-        self._collection.insert(d)
+        self.collection().insert(d)
         self._id = d['_id'] # save the unique id from mongo
 
     def to_dict(self):
@@ -117,15 +128,21 @@ class Model(object):
         return d
 
     @classmethod
+    def collection(self):
+        if not conf.get('database'):
+            connect()
+        return getattr(conf['database'],self.__name__)
+
+    @classmethod
     def all(self):
-        return self._collection.find()
+        return self.collection().find()
 
     @classmethod
     def find(self, q=None):
-        return self._collection.find(q.data if q else None)
+        return self.collection().find(q.data if q else None)
 
     def delete(self):
         if hasattr(self, '_id'):
-            self._collection.remove({'_id':self._id})
+            self.collection().remove({'_id':self._id})
 
 
