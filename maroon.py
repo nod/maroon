@@ -101,6 +101,7 @@ class Model(object):
         d = self.to_dict()
         self.collection().insert(d)
         self._id = d['_id'] # save the unique id from mongo
+        return self
 
     def to_dict(self):
         '''

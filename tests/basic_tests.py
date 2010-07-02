@@ -87,7 +87,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
     def test_simple_save(self):
         self.o1.i1 = 44
-        self.failIf( self.o1.save() )
+        self.o1.save()
         self.o2.i1 = 1
         self.o2.save()
         self.failUnless( 2 == SimpleModel.all().count() )
@@ -110,6 +110,8 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         i2 = SimpleModel.i2
         self.failUnless( 1 == SimpleModel.find( (i1>10) & (i1<100) ).count() )
         self.failUnless( 2 == SimpleModel.find( (i1==10) | (i1>=100) ).count() )
+        #self.failUnless( 3 == SimpleModel.find( 
+        #    (i1==11) | ((i1==10) | (i1==100)) ).count() )
         self.failUnless( 0 == SimpleModel.find( (i1==10) & (i2==29) ).count() )
         self.failUnless( 1 == SimpleModel.find( (i1==100) & (i2==29) ).count() )
         self.failUnless( 1 == SimpleModel.find( (i1!=44) & (i2==29) ).count() )
