@@ -23,6 +23,7 @@ class ComplexModel(Model):
 class TestComplexModelCreationAndAssignment(unittest.TestCase):
 
     def setUp(self):
+        ComplexModel.collection().remove()
         self.o1 = ComplexModel()
         self.o2 = ComplexModel()
         self.o3 = ComplexModel()
@@ -108,7 +109,5 @@ class TestComplexModelCreationAndAssignment(unittest.TestCase):
 
 if __name__ == '__main__':
     from random import random
-    db_name = 'test_'+hex(abs(hash(random())))
-    maroon.connect(db_name=db_name)
+    maroon.connect(db_name='test_maroon')
     unittest.main()
-    maroon.conf['connection'].drop_database(db_name)

@@ -22,6 +22,7 @@ class SimpleModel(Model):
 class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
     def setUp(self):
+        SimpleModel.collection().remove()
         self.o1 = SimpleModel()
         self.o2 = SimpleModel()
         self.o3 = SimpleModel()
@@ -122,8 +123,5 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
 if __name__ == '__main__':
     from random import random
-    db_name = 'test_'+hex(abs(hash(random())))
-    maroon.connect(db_name=db_name)
+    maroon.connect(db_name='test_maroon')
     unittest.main()
-    maroon.conf['connection'].drop_database(db_name)
-
