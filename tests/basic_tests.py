@@ -6,14 +6,8 @@ sys.path.append("..")
 import pymongo
 import unittest
 
+import maroon
 from maroon import Model, IntField, Field, BogusQuery
-
-
-# README
-# -----------------------------------------------------------------------
-# note!! this collection will get created, populated and destroyed during
-# testing. DO NOT USE A REAL COLLECTION HERE
-db_collection = None # some global love
 
 
 class SimpleModel(Model):
@@ -28,10 +22,9 @@ class SimpleModel(Model):
 class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
     def setUp(self):
-        SimpleModel._collection = db_collection # broke?
-        self.o1 = SimpleModel(db_collection)
-        self.o2 = SimpleModel(db_collection)
-        self.o3 = SimpleModel(db_collection)
+        self.o1 = SimpleModel()
+        self.o2 = SimpleModel()
+        self.o3 = SimpleModel()
 
     def tearDown(self):
         self.o1.delete()
@@ -112,11 +105,8 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
 if __name__ == '__main__':
     from random import random
-    mongo_connection = pymongo.Connection('localhost', 27017)
-    db_collection = getattr(  # generate a random collection name to work in
-        mongo_connection.test_db,
-        'test_'+hex(abs(hash(random())))
-        )
+    db_name = 'test_'+hex(abs(hash(random())))
+    maroon.connect(db_name=db_name)
     unittest.main()
-    mongo_connection.test_db.drop_collection(db_collection)
+    maroon.conf['connection'].drop_database(db_name)
 

@@ -10,17 +10,13 @@ from collections import defaultdict
 class BogusQuery(Exception): pass
 
 conf = {
-    'host': 'localhost',
-    'port': 27017,
-    'db_name': 'maroon',
     'database': None,
+    'connection': None,
 }
 
-def connect(host=None, port=None, db_name=None):
-    host = host or conf['host']
-    port = port or conf['port']
-    db_name = db_name or conf['db_name']
-    conf['database'] = getattr(pymongo.Connection(host,port), db_name)
+def connect(host='localhost', port=27017, db_name='maroon'):
+    conf['connection'] = pymongo.Connection(host,port)
+    conf['database'] = getattr(conf['connection'], db_name)
 
 def _getval(v):
     '''
@@ -94,7 +90,7 @@ class TextField(Field):
 
 
 class Model(object):
-    def __init__(self, collection):
+    def __init__(self):
         pass
 
     def __setattr__(self, n, v):

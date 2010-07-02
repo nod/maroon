@@ -7,14 +7,8 @@ import pymongo
 import unittest
 import re
 
+import maroon
 from maroon import Model, ListField, IntField, TextField, Field, BogusQuery
-
-
-# README
-# -----------------------------------------------------------------------
-# note!! this collection will get created, populated and destroyed during
-# testing. DO NOT USE A REAL COLLECTION HERE
-db_collection = None # some global love
 
 
 class ComplexModel(Model):
@@ -29,10 +23,9 @@ class ComplexModel(Model):
 class TestComplexModelCreationAndAssignment(unittest.TestCase):
 
     def setUp(self):
-        ComplexModel._collection = db_collection # broke?
-        self.o1 = ComplexModel(db_collection)
-        self.o2 = ComplexModel(db_collection)
-        self.o3 = ComplexModel(db_collection)
+        self.o1 = ComplexModel()
+        self.o2 = ComplexModel()
+        self.o3 = ComplexModel()
 
     def tearDown(self):
         self.o1.delete()
@@ -120,11 +113,7 @@ class TestComplexModelCreationAndAssignment(unittest.TestCase):
 
 if __name__ == '__main__':
     from random import random
-    mongo_connection = pymongo.Connection('localhost', 27017)
-    db_collection = getattr(  # generate a random collection name to work in
-        mongo_connection.test_db,
-        'test_'+hex(abs(hash(random())))
-        )
+    db_name = 'test_'+hex(abs(hash(random())))
+    maroon.connect(db_name=db_name)
     unittest.main()
-    mongo_connection.test_db.drop_collection(db_collection)
-
+    maroon.conf['connection'].drop_database(db_name)
