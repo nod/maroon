@@ -1,0 +1,6 @@
+handle nested or queries
+create more tests of nested queries
+check passing parameters to Model.__init__
+Do we have to pass the name to Field.__init__?
+
+add findObjects to Model
