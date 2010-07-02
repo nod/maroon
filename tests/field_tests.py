@@ -32,11 +32,6 @@ class TestComplexModelCreationAndAssignment(unittest.TestCase):
         self.o2.delete()
         self.o3.delete()
 
-    def test_attrs(self):
-        self.failUnless( isinstance(self.o1.i1, Field) )
-        self.failUnless( isinstance(self.o1.i1, IntField) )
-        self.failUnless( isinstance(self.o1.bag, ListField) )
-
     def test_simple_queries(self):
         self.o1.i1 = 10
         self.o1.bag = [1,2,3]
