@@ -45,6 +45,16 @@ class TestQueries(unittest.TestCase):
         self.failUnlessEqual( [4,5,10], _query_to_list(
             (n>3) & (name//'^[tf]') )
         )
+    
+    def test_or(self):
+        n = NumberModel.n
+        quad = NumberModel.quad
+        name = NumberModel.name
+        self.failUnlessEqual( [2,4,6], _query_to_list( (n==2)|(n==4)|(n==6) ) )
+        self.failUnlessEqual( [1,4,5,9], _query_to_list(
+            ((quad>15)&(quad<17)) | ((n>=4)&(n<=5)) ))
+        self.failUnlessEqual( [0,3,6,7,10], _query_to_list(
+            ((quad>15)|(quad<8)) & ((n<4)|(n>5)) ))
 
 if __name__ == '__main__':
     from random import random
