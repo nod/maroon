@@ -6,6 +6,7 @@ by Jeremy Kelley <jeremy@33ad.org>
 import re
 import pymongo
 from collections import defaultdict
+from copy import copy
 
 class BogusQuery(Exception): pass
 
@@ -19,24 +20,43 @@ def connect(host='localhost', port=27017, db_name='maroon'):
     conf['database'] = getattr(conf['connection'], db_name)
 
 
-class Q(object):
-
-    def __init__(self, d):
-        self.data = defaultdict(dict, d)
+class Q(defaultdict):
+    def __init__(self, d=None):
+        defaultdict.__init__(Q, d)
 
     def __and__(self, v):
-        for k in v.data:
-            if not hasattr(v.data[k], 'items') and k in self.data:
+        #This method works hard to not modify the old self object.  Bad things
+        # will happen if you modify self['size']['$gte']
+        q = Q(self)
+        for key in set(self)|set(v):
+            q[key] = 
+            if key in self:
+            if not hasattr(v[k], 'items') and k in self:
                 raise BogusQuery(
                     "and'ing 2 terms with diff values will never be true"
                     )
-            try: self.data[k].update(v.data[k])
-            except: self.data.update(v.data)
-        return self
+            try: self[k].update(v[k])
+            except: self.update(v)
+        return q
 
     def __or__(self, v):
-        self.data = {'$or':[self.data, v.data]}
-        return self
+        fixed_self = _to_distributed_list(self)
+        fixed_v = _to_distributed_list(v)
+        return Q({'$or':fixed_self+fixed_v})
+    
+    def _just_or(self):
+        return len(self)==1 and self.has_key('$or')
+
+    #mongo does not let you nest or statements - use boolean algebra to return a
+    #"sum of products"
+    def _to_distributed_list(self):
+        if not self.has_key('$or'):
+            return [self]
+        if len(self) ==1:
+            return self['$or']
+        outer = copy(self)
+        del outer['$or']
+        return [ (outer & inner) for inner in self['$or']]}
 
 
 class Field(object):
@@ -47,12 +67,12 @@ class Field(object):
     def _validate(self):
         pass
 
-    def __eq__(self, v): return Q({self._name: v})
-    def __ge__(self, v): return Q({self._name: {'$gte':v}})
-    def __gt__(self, v): return Q({self._name: {'$gt':v}})
-    def __le__(self, v): return Q({self._name: {'$lte':v}})
-    def __lt__(self, v): return Q({self._name: {'$lt':v}})
-    def __ne__(self, v): return Q({self._name: {'$ne':v}})
+    def __eq__(self, v): return Q({(self._name, '$eq' ):v})
+    def __ge__(self, v): return Q({(self._name, '$gte'):v})
+    def __gt__(self, v): return Q({(self._name, '$gt' ):v})
+    def __le__(self, v): return Q({(self._name, '$lte'):v})
+    def __lt__(self, v): return Q({(self._name, '$lt' ):v})
+    def __ne__(self, v): return Q({(self._name, '$ne' ):v})
 
 # ADD def for $all to peek in doc members with arrays  TODO
 
@@ -128,6 +148,8 @@ class Model(object):
 
     @classmethod
     def find(self, q=None):
+        from pprint import pprint
+        pprint(q.data)
         return self.collection().find(q.data if q else None)
 
     def delete(self):
