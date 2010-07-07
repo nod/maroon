@@ -101,28 +101,6 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.failUnless( 2 == SimpleModel.find( (i1>=8) ).count() )
         self.failUnless( 1 == SimpleModel.find( (i1==10) ).count() )
 
-    def test_advanced_queries(self):
-        self.o1.i1 = 10;  self.o1.save()
-        self.o2.i1 = 11;  self.o2.save()
-        self.o3.i1 = 100;
-        self.o3.i2 = 29; self.o3.save()
-        i1 = SimpleModel.i1
-        i2 = SimpleModel.i2
-        self.failUnless( 1 == SimpleModel.find( (i1>10) & (i1<100) ).count() )
-        self.failUnless( 2 == SimpleModel.find( (i1==10) | (i1>=100) ).count() )
-        #self.failUnless( 3 == SimpleModel.find( 
-        #    (i1==11) | ((i1==10) | (i1==100)) ).count() )
-        self.failUnless( 0 == SimpleModel.find( (i1==10) & (i2==29) ).count() )
-        self.failUnless( 1 == SimpleModel.find( (i1==100) & (i2==29) ).count() )
-        self.failUnless( 1 == SimpleModel.find( (i1!=44) & (i2==29) ).count() )
-        self.failUnless( 1 == SimpleModel.find( (i2==29) & (i1!=44) ).count() )
-        self.failUnless( 1 == SimpleModel.find( (i2<=30) & (i1!=44) ).count() )
-        self.failUnless( 0 == SimpleModel.find( (i2<=30) & (i1==44) ).count() )
-        self.failUnlessRaises(
-            BogusQuery,
-            lambda: 0 == SimpleModel.find( (i1==10) & (i1==100) ).count() 
-            )
-
 if __name__ == '__main__':
     from random import random
     maroon.connect(db_name='test_maroon')

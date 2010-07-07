@@ -45,34 +45,48 @@ class TestQueries(unittest.TestCase):
         self.failUnlessEqual( [4,5,10], _query_to_list(
             (n>3) & (name//'^[tf]') )
         )
-    
-    def dont_test_impossible(self):
+   
+    def test_impossible(self):
         n = NumberModel.n
-        self.failUnlessEqual( [], _query_to_list(
-            (n==1)&(n>3)))
-        self.failUnlessEqual( [], _query_to_list(
-            (n>3)&(n==1)))
-        
+        self.failUnlessRaises( BogusQuery,
+            lambda: NumberModel.find( (n==1) & (n==2) ))
+        self.failUnlessRaises( BogusQuery,
+            lambda: NumberModel.find( (n>1) & (n>2) ))
+        self.failUnlessRaises( BogusQuery,
+            lambda: NumberModel.find( (n==1) & (n>2) ))
+
+    def test_and(self):
+        n = NumberModel.n
+        quad = NumberModel.quad
+        name = NumberModel.name
+        self.failUnlessEqual( [4,5], _query_to_list( (n>3)&(n<=5) ) )
+        self.failUnlessEqual( [3,4,6], _query_to_list( (n>=3)&(n<7)&(n!=5) ))
+        self.failUnlessEqual( [2,3,6,7,10], _query_to_list(
+            ((name//'^[tfs]')&(n!=4)) &(quad>0)) )
+        self.failUnlessEqual( [2,3,6,7,10], _query_to_list(
+            (name//'^[tfs]' &((n!=4))&(quad>0))) )
+
     def test_or(self):
         n = NumberModel.n
         quad = NumberModel.quad
         name = NumberModel.name
         self.failUnlessEqual( [2,4,6], _query_to_list( (n==2)|(n==4)|(n==6) ) )
-        self.failUnlessEqual( [1,4,5,9], _query_to_list(
-            ((quad>15)&(quad<17)) | ((n>=4)&(n<=5)) ))
-        self.failUnlessEqual( [0,3,6,7,10], _query_to_list(
-            ((quad>17)|(quad<8)) & ((n<4)|(n>5)) ))
-        
-    def test_nesting(self):
-        n = NumberModel.n
-        quad = NumberModel.quad
         self.failUnlessEqual( [2,3,5,7], _query_to_list(
             (((n==2)|(n==3)) |(n==5)) |(n==7) ))
         self.failUnlessEqual( [2,3,5,7], _query_to_list(
             (n==2)| ((n==3)| ((n==5)|(n==7))) ))
-        
+
+    def test_nesting(self):
+        n = NumberModel.n
+        quad = NumberModel.quad
+        self.failUnlessEqual( [1,4,5,9], _query_to_list(
+            ((quad>15)&(quad<17)) | ((n>=4)&(n<=5)) ))
+        self.failUnlessEqual( [0,3,6,7,10], _query_to_list(
+            ((quad>17)|(quad<8)) & ((n<4)|(n>5)) ))
         self.failUnlessEqual( [0,3,7,8,9], _query_to_list(
             (n==0)| ((quad<20)& ((n==3)|(n>6))) ))
+        self.failUnlessEqual( [3,4,6,7,8,10], _query_to_list(
+            (n>=3)& ((quad==25)| ((quad>0)&(quad<10))) ))
 
 if __name__ == '__main__':
     from random import random

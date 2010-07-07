@@ -81,7 +81,6 @@ class Q(dict):
                 d[key[0]][key[1]] = mongo_value
             else:
                 d[key] = mongo_value
-        #print d
         return d
 
 
@@ -174,6 +173,7 @@ class Model(object):
 
     @classmethod
     def find(self, q=None):
+        print q
         return self.collection().find(q.to_mongo_dict() if q else None)
 
     def delete(self):
