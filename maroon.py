@@ -20,33 +20,32 @@ def connect(host='localhost', port=27017, db_name='maroon'):
     conf['database'] = getattr(conf['connection'], db_name)
 
 
-class Q(defaultdict):
+class Q(dict):
     def __init__(self, d=None):
-        defaultdict.__init__(Q, d)
+        dict.__init__(self,d)
 
     def __and__(self, v):
-        #This method works hard to not modify the old self object.  Bad things
-        # will happen if you modify self['size']['$gte']
-        q = Q(self)
-        for key in set(self)|set(v):
-            q[key] = 
-            if key in self:
-            if not hasattr(v[k], 'items') and k in self:
-                raise BogusQuery(
-                    "and'ing 2 terms with diff values will never be true"
-                    )
-            try: self[k].update(v[k])
-            except: self.update(v)
+        for key in set(self)&set(v):
+            if key != '$or':
+                raise BogusQuery( "field %s can't match %s and %s"%(
+                        key, str(self[key]), str(v[key])
+                    ))
+        q = Q(self) #we do not want to modify self or v
+        q.update(v)
+        if self.has_key('$or') and v.has_key('$or'):
+            #combine the things in $or using the distributive property
+            q['$or'] = [
+                self_term & v_term
+                for self_term in self['$or']
+                for v_term in v['$or']
+            ]
         return q
 
     def __or__(self, v):
-        fixed_self = _to_distributed_list(self)
-        fixed_v = _to_distributed_list(v)
+        fixed_self = self._to_distributed_list()
+        fixed_v = v._to_distributed_list()
         return Q({'$or':fixed_self+fixed_v})
     
-    def _just_or(self):
-        return len(self)==1 and self.has_key('$or')
-
     #mongo does not let you nest or statements - use boolean algebra to return a
     #"sum of products"
     def _to_distributed_list(self):
@@ -56,7 +55,34 @@ class Q(defaultdict):
             return self['$or']
         outer = copy(self)
         del outer['$or']
-        return [ (outer & inner) for inner in self['$or']]}
+        return [ (outer & inner) for inner in self['$or']]
+
+    def to_mongo_dict(self):
+        d = defaultdict(dict)
+        for key,val in self.iteritems():
+            #crawl the tree
+            if isinstance(val, Q):
+                mongo_value = val.to_mongo_dict()
+            elif hasattr(val, '__iter__') and not isinstance(val, basestring):
+                mongo_value = [
+                        item.to_mongo_dict() if isinstance(item,Q) else item
+                        for item in val
+                ]
+            else:
+                mongo_value = val
+
+            #expand the tuples
+            if isinstance(key, tuple):
+                if key[0] in self:
+                    raise BogusQuery( "field %s can't be %s and match %s"%(
+                            key[0], str(self[key[0]]), str(val)
+                        ))
+                #convert self[('size','$gte')] to d['size']['$gte'] 
+                d[key[0]][key[1]] = mongo_value
+            else:
+                d[key] = mongo_value
+        #print d
+        return d
 
 
 class Field(object):
@@ -67,7 +93,7 @@ class Field(object):
     def _validate(self):
         pass
 
-    def __eq__(self, v): return Q({(self._name, '$eq' ):v})
+    def __eq__(self, v): return Q({self._name: v})
     def __ge__(self, v): return Q({(self._name, '$gte'):v})
     def __gt__(self, v): return Q({(self._name, '$gt' ):v})
     def __le__(self, v): return Q({(self._name, '$lte'):v})
@@ -148,9 +174,7 @@ class Model(object):
 
     @classmethod
     def find(self, q=None):
-        from pprint import pprint
-        pprint(q.data)
-        return self.collection().find(q.data if q else None)
+        return self.collection().find(q.to_mongo_dict() if q else None)
 
     def delete(self):
         if hasattr(self, '_id'):
