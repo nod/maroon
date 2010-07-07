@@ -7,21 +7,24 @@ A simplified object relational model written in Python.
 contrived example
 -----------------
 
-	from maroon import Model, IntField
+	from maroon import Model, IntField, connect
    
-    ... setup mongo connection ...
+	#connect to the database
+	connect(db_name='example_db')
 
+	#make a model
 	class SimpleModel(Model):
 		someint = IntField('someint')
 
-	# creation
-    s_m = SimpleModel(db_collection)
+	# create an object
+    s_m = SimpleModel()
 	s_m.someint = 23
 	s_m.save()
 
 	# retrieval
 	si = SimpleModel.someint
 	results = SimpleModel.find(si > 19)
+	print si.someint
 
 
 That's it for now.
