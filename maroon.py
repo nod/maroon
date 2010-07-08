@@ -140,13 +140,13 @@ class Model(object):
     def __getattribute__(self, name):
         '''Hide Fields in instances of Models.'''
         #here be dragons - if you say self.anything, infinite recursion happens
-        self_dict = object.__getattribute__(self,'__dict__')
-        if not self_dict.has_key(name):
-            #if name is not an instance variable, then we check if it is a Field
-            field = getattr(type(self), name, None)
-            if field and isinstance(field, Field):
+        value = object.__getattribute__(self,name)
+        #if name is not an instance variable, then we check if it is a Field
+        if isinstance(value, Field):
+            self_dict = object.__getattribute__(self,'__dict__')
+            if not self_dict.has_key(name):
                 return None
-        return object.__getattribute__(self,name)
+        return value
 
     def __setattr__(self, n, v):
         field = getattr(type(self),n,None)
@@ -185,7 +185,7 @@ class Model(object):
 
     @classmethod
     def find(self, q=None):
-        print q
+        #print q
         return self.collection().find(q.to_mongo_dict() if q else None)
 
     def delete(self):
