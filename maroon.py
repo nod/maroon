@@ -34,6 +34,7 @@ class Q(dict):
         q.update(v)
         if self.has_key('$or') and v.has_key('$or'):
             #combine the things in $or using the distributive property
+            #(a|b)&(c|d) -> (a&c | a&d | b&c | b&d)  
             q['$or'] = [
                 self_term & v_term
                 for self_term in self['$or']
@@ -46,15 +47,17 @@ class Q(dict):
         fixed_v = v._to_distributed_list()
         return Q({'$or':fixed_self+fixed_v})
     
-    #mongo does not let you nest or statements - use boolean algebra to return a
-    #"sum of products"
     def _to_distributed_list(self):
+        #returns a list of Q objects that is equivalent to self if the terms
+        #of the list are ORed together
         if not self.has_key('$or'):
             return [self]
         if len(self) ==1:
             return self['$or']
         outer = copy(self)
         del outer['$or']
+        #mongo does not let you nest or statements - use boolean algebra to
+        #return a "sum of products"
         return [ (outer & inner) for inner in self['$or']]
 
     def to_mongo_dict(self):
@@ -135,8 +138,11 @@ class Model(object):
         self.from_dict(kwargs)
 
     def __getattribute__(self, name):
+        '''Hide Fields in instances of Models.'''
+        #here be dragons - if you say self.anything, infinite recursion happens
         self_dict = object.__getattribute__(self,'__dict__')
         if not self_dict.has_key(name):
+            #if name is not an instance variable, then we check if it is a Field
             field = getattr(type(self), name, None)
             if field and isinstance(field, Field):
                 return None
