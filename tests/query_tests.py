@@ -7,7 +7,7 @@ import pymongo
 import unittest
 
 import maroon
-from maroon import Model, TextField, IntField, BogusQuery
+from maroon import Model, TextField, IntField, ListField, BogusQuery
 
 
 class NumberModel(Model):
@@ -18,10 +18,13 @@ class NumberModel(Model):
     n = IntField('n')
     quad = IntField('quad')
     name = TextField('name')
+    factors = ListField('factors')
 
 def _query_to_list(q):
     return sorted( [json['n'] for json in NumberModel.find(q)] )
 
+def _factors(n):
+    return [x for x in xrange(1,n+1) if n%x==0]
 
 class TestQueries(unittest.TestCase):
 
@@ -29,7 +32,12 @@ class TestQueries(unittest.TestCase):
         NumberModel.collection().remove()
         names = 'zero one two three four five six seven eight nine ten'.split()
         self.nums = [
-                NumberModel(n=i, quad=((i-5)**2), name=names[i] ).save()
+                NumberModel(
+                    n=i,
+                    quad=((i-5)**2),
+                    name=names[i],
+                    factors=_factors(i),
+                ).save()
                 for i in xrange(len(names))
                 ]
 
@@ -87,6 +95,27 @@ class TestQueries(unittest.TestCase):
             (n==0)| ((quad<20)& ((n==3)|(n>6))) ))
         self.failUnlessEqual( [3,4,6,7,8,10], _query_to_list(
             (n>=3)& ((quad==25)| ((quad>0)&(quad<10))) ))
+
+    def test_is_in(self):
+        n = NumberModel.n
+        self.failUnlessEqual( [1,4,5,9], _query_to_list(
+            n.is_in([1,4,5,9]) ))
+
+    def test_is_not_in(self):
+        n = NumberModel.n
+        self.failUnlessEqual( [0,2,3,6,7,8], _query_to_list(
+            n.is_not_in([1,4,5,9,10]) ))
+
+    def test_list_has(self):
+        factors = NumberModel.factors
+        self.failUnlessEqual( [2,4,6,8,10], _query_to_list(
+            factors.has(2) ))
+
+    def test_list_has_all(self):
+        factors = NumberModel.factors
+        self.failUnlessEqual( [6], _query_to_list(
+            factors.has_all([2,3]) ))
+
 
 if __name__ == '__main__':
     from random import random

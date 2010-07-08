@@ -98,6 +98,9 @@ class Field(object):
     def __le__(self, v): return Q({(self._name, '$lte'):v})
     def __lt__(self, v): return Q({(self._name, '$lt' ):v})
     def __ne__(self, v): return Q({(self._name, '$ne' ):v})
+    
+    def is_in(self, terms): return Q({(self._name, '$in' ):terms})
+    def is_not_in(self, terms): return Q({(self._name, '$nin' ):terms})
 
 # ADD def for $all to peek in doc members with arrays  TODO
 
@@ -111,6 +114,9 @@ class ListField(Field):
     def _validate(self, val):
         if not hasattr(val, '__iter__'): # will raise ValueError if bogus
             raise ValueError("value not list")
+    
+    def has(self, v): return Q({self._name: v})
+    def has_all(self, terms): return Q({(self._name, '$all' ):terms})
 
 
 class TextField(Field):
