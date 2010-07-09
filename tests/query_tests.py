@@ -62,6 +62,11 @@ class TestQueries(unittest.TestCase):
             lambda: NumberModel.find( (n>1) & (n>2) ))
         self.failUnlessRaises( BogusQuery,
             lambda: NumberModel.find( (n==1) & (n>2) ))
+        x = 3
+        self.failUnlessRaises( BogusQuery,
+            lambda: NumberModel.find( x>2) )
+        self.failUnlessRaises( BogusQuery,
+            lambda: NumberModel.find( x<=2) )
 
     def test_and(self):
         n = NumberModel.n

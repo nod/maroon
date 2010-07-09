@@ -190,6 +190,9 @@ class Model(object):
     @classmethod
     def find(self, q=None):
         #print q
+        if q is False or q is True:
+            #make sure we didn't call one of python's comparison operators
+            raise BogusQuery("The first term in a comparison must be a Field.")
         return self.collection().find(q.to_mongo_dict() if q else None)
 
     def delete(self):
