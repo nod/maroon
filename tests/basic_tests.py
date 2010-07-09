@@ -70,6 +70,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o1.i1 = 1
         self.failUnlessEqual(self.o1.to_dict(), {'i1':1})
 
+
     def test_init_from_dict(self):
         self.o2.i1 = 3
         self.o2.i2 = 7
@@ -91,6 +92,50 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o2.i1 = 1
         self.o2.save()
         self.failUnless( 2 == SimpleModel.all().count() )
+
+    #make sure that the same thing is not created twice
+    def test_save_retreive_save(self):
+        self.o1.i1 = 1
+        self.o1.i2 = 2
+        self.o1.save()
+        i1 = SimpleModel.i1
+        ob = SimpleModel(SimpleModel.find(i1==1)[0])
+        ob.i1 = 1
+        ob.i2 = 3
+        ob.save()
+        self.failUnless((SimpleModel.find(i1==1)).count() == 1)
+#        print "count is...",(SimpleModel.find()).count()
+        ob = SimpleModel(SimpleModel.find(i1==1)[0])
+        self.failUnless(ob.i2 == 3)
+
+
+    def test_save_with_none_param(self):
+        obj1 = SimpleModel({'i1':2})
+        obj1.save()
+        i1 = SimpleModel.i1
+        ob = SimpleModel(SimpleModel.find(i1==2)[0])
+        self.failUnless(ob.i2 == None)
+
+    def test_save_with_none_param_then_set(self):
+        obj1 = SimpleModel({'i1':2})
+        obj1.save()
+        i1 = SimpleModel.i1
+        ob = SimpleModel(SimpleModel.find(i1==2)[0])
+        ob.i2 = 15
+        ob.save()
+        ob = SimpleModel(SimpleModel.find(i1==2)[0])
+        self.failUnless(ob.i2 == 15)
+
+    def test_save_then_save_with_none_param(self):
+        self.o2.i1 = 2
+        self.o2.i2 = 3
+        self.o2.save()
+        i1 = SimpleModel.i1
+        item = SimpleModel((SimpleModel.find(i1==2)[0]))
+        self.failUnless( item.i2 == 3)
+        item.i2 = None
+        item = SimpleModel((SimpleModel.find(i1==2)[0]))
+        self.failUnless( item.i2 == None)
 
     def test_simple_queries(self):
         self.o1.i1 = 10
