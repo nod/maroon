@@ -70,7 +70,6 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o1.i1 = 1
         self.failUnlessEqual(self.o1.to_dict(), {'i1':1})
 
-
     def test_init_from_dict(self):
         self.o2.i1 = 3
         self.o2.i2 = 7
@@ -93,30 +92,27 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o2.save()
         self.failUnless( 2 == SimpleModel.all().count() )
 
-    #make sure that the same thing is not created twice
-    def test_save_retreive_save(self):
+    def test_update_object(self):
+        #make sure that we replace objects when they are updated
         self.o1.i1 = 1
         self.o1.i2 = 2
         self.o1.save()
         i1 = SimpleModel.i1
         ob = SimpleModel(SimpleModel.find(i1==1)[0])
-        ob.i1 = 1
         ob.i2 = 3
         ob.save()
-        self.failUnless((SimpleModel.find(i1==1)).count() == 1)
-#        print "count is...",(SimpleModel.find()).count()
+        self.failUnlessEqual(1, SimpleModel.find().count())
         ob = SimpleModel(SimpleModel.find(i1==1)[0])
-        self.failUnless(ob.i2 == 3)
+        self.failUnlessEqual(3, ob.i1)
 
-
-    def test_save_with_none_param(self):
+    def test_missing_fields(self):
         obj1 = SimpleModel({'i1':2})
         obj1.save()
         i1 = SimpleModel.i1
         ob = SimpleModel(SimpleModel.find(i1==2)[0])
         self.failUnless(ob.i2 == None)
 
-    def test_save_with_none_param_then_set(self):
+    def test_set_missing_field(self):
         obj1 = SimpleModel({'i1':2})
         obj1.save()
         i1 = SimpleModel.i1
@@ -126,7 +122,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         ob = SimpleModel(SimpleModel.find(i1==2)[0])
         self.failUnless(ob.i2 == 15)
 
-    def test_save_then_save_with_none_param(self):
+    def test_remove_field(self):
         self.o2.i1 = 2
         self.o2.i2 = 3
         self.o2.save()
