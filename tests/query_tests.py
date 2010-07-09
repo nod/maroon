@@ -109,7 +109,7 @@ class TestQueries(unittest.TestCase):
     def test_list_has(self):
         factors = NumberModel.factors
         self.failUnlessEqual( [2,4,6,8,10], _query_to_list(
-            factors.has(2) ))
+            factors == 2 ))
 
     def test_list_has_all(self):
         factors = NumberModel.factors

@@ -92,7 +92,8 @@ class Field(object):
     def __init__(self, name):
         self._name = name
 
-    def _validate(self):
+    @classmethod
+    def validate(self):
         pass
 
     def __eq__(self, v): return Q({self._name: v})
@@ -108,22 +109,24 @@ class Field(object):
 # ADD def for $all to peek in doc members with arrays  TODO
 
 class IntField(Field):
-    def _validate(self, val):
+    @classmethod
+    def validate(self, val):
         if int(val) != val: # will raise ValueError if bogus
             raise ValueError("value not int")
 
 
 class ListField(Field):
-    def _validate(self, val):
+    @classmethod
+    def validate(self, val):
         if not hasattr(val, '__iter__'): # will raise ValueError if bogus
             raise ValueError("value not list")
     
-    def has(self, v): return Q({self._name: v})
     def has_all(self, terms): return Q({(self._name, '$all' ):terms})
 
 
 class TextField(Field):
-    def _validate(self, val):
+    @classmethod
+    def validate(self, val):
         if unicode(val) != val: # will raise ValueError if bogus
             raise ValueError("value not text")
 
@@ -151,7 +154,7 @@ class Model(object):
     def __setattr__(self, n, v):
         field = getattr(type(self),n,None)
         if field and isinstance(field, Field):
-            field._validate(v)
+            field.validate(v)
         self.__dict__[n] = v
 
     def save(self):
