@@ -133,7 +133,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         item.save()
         result = SimpleModel.find()[0]
         self.failUnlessEqual( result['i2'], None)
-        self.failUnlessEqual( result, item)
+        self.failUnlessEqual( result, item.to_dict())
 
     def test_simple_queries(self):
         self.o1.i1 = 10
