@@ -154,12 +154,13 @@ class Model(object):
     def __setattr__(self, n, v):
         field = getattr(type(self),n,None)
         if field and isinstance(field, Field):
-            field.validate(v)
+            if v is not None:
+                field.validate(v)
         self.__dict__[n] = v
 
     def save(self):
         d = self.to_dict()
-        self.collection().insert(d)
+        self.collection().save(d)
         self._id = d['_id'] # save the unique id from mongo
         return self
 
