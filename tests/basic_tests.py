@@ -53,7 +53,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
     
     def test_simple_arith(self):
         self.o1.i1 = 6
-        self.failUnless( 7 == 1+self.o1.i1)
+        self.failUnlessEqual( 7, 1+self.o1.i1)
         self.failUnless( self.o1.i1 > 3)
 
     def test_simple_assign_to_multiple(self):
@@ -80,17 +80,17 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         obj1 = SimpleModel({'i1':2})
         obj2 = SimpleModel(SimpleModel.find( (i1==3) )[0])
         obj3 = SimpleModel(SimpleModel.find( (i1==8) )[0])
-        self.failUnless( 2 == obj1.i1 )
-        self.failUnless( 3 == obj2.i1 )
-        self.failUnless( 7 == obj2.i2 )
-        self.failUnless( 8 == obj3.i1 )
+        self.failUnlessEqual( 2, obj1.i1 )
+        self.failUnlessEqual( 3, obj2.i1 )
+        self.failUnlessEqual( 7, obj2.i2 )
+        self.failUnlessEqual( 8, obj3.i1 )
 
     def test_simple_save(self):
         self.o1.i1 = 44
         self.o1.save()
         self.o2.i1 = 1
         self.o2.save()
-        self.failUnless( 2 == SimpleModel.all().count() )
+        self.failUnlessEqual( 2, SimpleModel.all().count() )
 
     def test_update_object(self):
         #make sure that we replace objects when they are updated
@@ -110,7 +110,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         obj1.save()
         i1 = SimpleModel.i1
         ob = SimpleModel(SimpleModel.find(i1==2)[0])
-        self.failUnless(ob.i2 == None)
+        self.failUnlessEqual(ob.i2, None)
 
     def test_set_missing_field(self):
         obj1 = SimpleModel({'i1':2})
@@ -120,7 +120,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         ob.i2 = 15
         ob.save()
         ob = SimpleModel(SimpleModel.find(i1==2)[0])
-        self.failUnless(ob.i2 == 15)
+        self.failUnlessEqual(ob.i2, 15)
 
     def test_remove_field(self):
         self.o2.i1 = 2
@@ -128,10 +128,10 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o2.save()
         i1 = SimpleModel.i1
         item = SimpleModel((SimpleModel.find(i1==2)[0]))
-        self.failUnless( item.i2 == 3)
+        self.failUnlessEqual( item.i2, 3)
         item.i2 = None
         item = SimpleModel((SimpleModel.find(i1==2)[0]))
-        self.failUnless( item.i2 == None)
+        self.failUnlessEqual( item.i2, None)
 
     def test_simple_queries(self):
         self.o1.i1 = 10
@@ -139,8 +139,8 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o2.i1 = 11
         self.o2.save()
         i1 = SimpleModel.i1
-        self.failUnless( 2 == SimpleModel.find( (i1>=8) ).count() )
-        self.failUnless( 1 == SimpleModel.find( (i1==10) ).count() )
+        self.failUnlessEqual( 2, SimpleModel.find( (i1>=8) ).count() )
+        self.failUnlessEqual( 1, SimpleModel.find( (i1==10) ).count() )
 
 if __name__ == '__main__':
     from random import random

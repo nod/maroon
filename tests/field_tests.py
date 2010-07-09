@@ -40,8 +40,8 @@ class TestComplexModelCreationAndAssignment(unittest.TestCase):
         self.o2.i1 = 11
         self.o2.save()
         i1 = ComplexModel.i1
-        self.failUnless( 2 == ComplexModel.find( (i1>=8) ).count() )
-        self.failUnless( 1 == ComplexModel.find( (i1==10) ).count() )
+        self.failUnlessEqual( 2, ComplexModel.find( (i1>=8) ).count() )
+        self.failUnlessEqual( 1, ComplexModel.find( (i1==10) ).count() )
 
     def test_text_unicode(self):
         kawaii = u'\u53ef\u611b\u3044!'
@@ -69,9 +69,9 @@ class TestComplexModelCreationAndAssignment(unittest.TestCase):
         self.o3.t1="spam"
         self.o3.save()
         t1 = ComplexModel.t1
-        self.failUnless( 1 == ComplexModel.find( (t1>'bible') ).count() )
-        self.failUnless( 2 == ComplexModel.find( (t1<='bible') ).count() )
-        self.failUnless( 0 == ComplexModel.find( (t1<'apocrypha') ).count() )
+        self.failUnlessEqual( 1, ComplexModel.find( (t1>'bible') ).count() )
+        self.failUnlessEqual( 2, ComplexModel.find( (t1<='bible') ).count() )
+        self.failUnlessEqual( 0, ComplexModel.find( (t1<'apocrypha') ).count() )
 
     def test_text_regex(self):
         self.o1.t1="dovefoot"
@@ -82,10 +82,10 @@ class TestComplexModelCreationAndAssignment(unittest.TestCase):
         self.o3.save()
         t1 = ComplexModel.t1
         regex = re.compile('foo',re.I)
-        self.failUnless( 3 == ComplexModel.find( (t1//regex) ).count() )
-        self.failUnless( 2 == ComplexModel.find( (t1//'foo') ).count() )
-        self.failUnless( 1 == ComplexModel.find( (t1//'foot$') ).count() )
-        self.failUnless( 1 == ComplexModel.find( (t1//'\sfoo') ).count() )
+        self.failUnlessEqual( 3, ComplexModel.find( (t1//regex) ).count() )
+        self.failUnlessEqual( 2, ComplexModel.find( (t1//'foo') ).count() )
+        self.failUnlessEqual( 1, ComplexModel.find( (t1//'foot$') ).count() )
+        self.failUnlessEqual( 1, ComplexModel.find( (t1//'\sfoo') ).count() )
 
     def test_text_evil(self):
         evil1=r"''\\x42'gig"
@@ -104,7 +104,7 @@ class TestComplexModelCreationAndAssignment(unittest.TestCase):
         self.assertEqual(evil2, results[0]['t1'])
         results = ComplexModel.find( t1//'em' )
         self.assertEqual(evil2, results[0]['t1'])
-        self.failUnless(1 == ComplexModel.find( t1//'^//\\{{2}' ).count() )
+        self.failUnlessEqual(1, ComplexModel.find( t1//'^//\\{{2}' ).count() )
 
 
 if __name__ == '__main__':
