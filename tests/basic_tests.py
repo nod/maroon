@@ -15,8 +15,8 @@ class SimpleModel(Model):
     A very simple example of a model consisting of a few simple members.  This will
     be used to test simple assignment and also dictionary exporting
     '''
-    i1 = IntProperty('i1')
-    i2 = IntProperty('i2')
+    i1 = IntProperty()
+    i2 = IntProperty()
 
 
 class TestBasicModelCreationAndAssignment(unittest.TestCase):

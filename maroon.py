@@ -205,9 +205,9 @@ class Model(object):
                     if val is not None:
                         self.__dict__[name] = val
 
-        # let's seed the doc_type with our class name
-        if not self.__dict__.has_key('doc_type'):
-            self.__dict__['doc_type'] = self.__class__.__name__.lower()
+        #For couch: let's seed the doc_type with our class name
+        #if not self.__dict__.has_key('doc_type'):
+        #    self.__dict__['doc_type'] = self.__class__.__name__.lower()
 
 
     def __getattribute__(self, name):

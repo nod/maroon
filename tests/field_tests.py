@@ -15,9 +15,9 @@ class ComplexModel(Model):
     '''
     a bit more complex model to test the other field types
     '''
-    i1 = IntProperty('i1')
-    bag = ListProperty('bag')
-    t1 = TextProperty('t1')
+    i1 = IntProperty()
+    bag = ListProperty()
+    t1 = TextProperty()
 
 
 class TestComplexModelCreationAndAssignment(unittest.TestCase):
