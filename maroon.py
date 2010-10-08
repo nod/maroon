@@ -87,7 +87,7 @@ class Q(dict):
         return d
 
 
-class Field(object):
+class Property(object):
 
     def __init__(self, name):
         self._name = name
@@ -108,14 +108,14 @@ class Field(object):
 
 # ADD def for $all to peek in doc members with arrays  TODO
 
-class IntField(Field):
+class IntProperty(Property):
     @classmethod
     def validate(self, val):
         if int(val) != val: # will raise ValueError if bogus
             raise ValueError("value not int")
 
 
-class ListField(Field):
+class ListProperty(Property):
     @classmethod
     def validate(self, val):
         if not hasattr(val, '__iter__'): # will raise ValueError if bogus
@@ -124,7 +124,7 @@ class ListField(Field):
     def has_all(self, terms): return Q({(self._name, '$all' ):terms})
 
 
-class TextField(Field):
+class TextProperty(Property):
     @classmethod
     def validate(self, val):
         if unicode(val) != val: # will raise ValueError if bogus
@@ -141,11 +141,11 @@ class Model(object):
         self.from_dict(kwargs)
 
     def __getattribute__(self, name):
-        '''Hide Fields in instances of Models.'''
+        '''Hide Propertys in instances of Models.'''
         #here be dragons - if you say self.anything, infinite recursion happens
         value = object.__getattribute__(self,name)
-        #if name is not an instance variable, then we check if it is a Field
-        if isinstance(value, Field):
+        #if name is not an instance variable, then we check if it is a Property
+        if isinstance(value, Property):
             self_dict = object.__getattribute__(self,'__dict__')
             if not self_dict.has_key(name):
                 return None
@@ -153,7 +153,7 @@ class Model(object):
 
     def __setattr__(self, n, v):
         field = getattr(type(self),n,None)
-        if field and isinstance(field, Field):
+        if field and isinstance(field, Property):
             if v is not None:
                 field.validate(v)
         self.__dict__[n] = v
@@ -167,7 +167,7 @@ class Model(object):
     def to_dict(self):
         '''
         Build a dictionary from all non-callable entities attached to our
-        object.  This will return any Fields on the object, but also any object
+        object.  This will return any Propertys on the object, but also any object
         members added after the fact.
         '''
         d = dict( (k,v) for k,v in self.__dict__.iteritems() if not callable(v) )
@@ -192,7 +192,7 @@ class Model(object):
         #print q
         if q is False or q is True:
             #make sure we didn't call one of python's comparison operators
-            raise BogusQuery("The first term in a comparison must be a Field.")
+            raise BogusQuery("The first term in a comparison must be a Property.")
         return self.collection().find(q.to_mongo_dict() if q else None)
 
     def delete(self):
