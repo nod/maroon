@@ -8,16 +8,16 @@ import unittest
 import re
 
 import maroon
-from maroon import Model, ListField, IntField, TextField, Field, BogusQuery
+from maroon import Model, ListProperty, IntProperty, TextProperty, Property
 
 
 class ComplexModel(Model):
     '''
     a bit more complex model to test the other field types
     '''
-    i1 = IntField('i1')
-    bag = ListField('bag')
-    t1 = TextField('t1')
+    i1 = IntProperty('i1')
+    bag = ListProperty('bag')
+    t1 = TextProperty('t1')
 
 
 class TestComplexModelCreationAndAssignment(unittest.TestCase):

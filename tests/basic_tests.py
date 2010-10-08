@@ -7,7 +7,7 @@ import pymongo
 import unittest
 
 import maroon
-from maroon import Model, IntField, Field, BogusQuery
+from maroon import Model, IntProperty, Property
 
 
 class SimpleModel(Model):
@@ -15,8 +15,8 @@ class SimpleModel(Model):
     A very simple example of a model consisting of a few simple members.  This will
     be used to test simple assignment and also dictionary exporting
     '''
-    i1 = IntField('i1')
-    i2 = IntField('i2')
+    i1 = IntProperty('i1')
+    i2 = IntProperty('i2')
 
 
 class TestBasicModelCreationAndAssignment(unittest.TestCase):
