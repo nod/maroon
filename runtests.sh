@@ -1,4 +1,5 @@
 #!/bin/bash
+export PYTHONPATH=".."
 cd tests
 for test in *tests.py
 do

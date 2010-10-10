@@ -22,19 +22,9 @@ class SimpleModel(Model):
 class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
     def setUp(self):
-        SimpleModel.collection().remove()
         self.o1 = SimpleModel()
         self.o2 = SimpleModel()
         self.o3 = SimpleModel()
-
-    def tearDown(self):
-        self.o1.delete()
-        self.o2.delete()
-        self.o3.delete()
-
-    def test_delete(self):
-        self.o1.i1 = 2
-        self.o1.save()
 
     def test_simple_assign_bogus(self):
         # test for assigning an obvious non-integer 
@@ -79,6 +69,4 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    from random import random
-    maroon.connect(db_name='test_maroon')
     unittest.main()

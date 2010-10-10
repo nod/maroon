@@ -5,20 +5,9 @@ by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 
 import datetime
 import re
-import pymongo
-from collections import defaultdict
-from copy import copy
+
 
 SLUG_REGEX = re.compile('[\w@\.]+$')
-
-conf = {
-    'database': None,
-    'connection': None,
-}
-
-def connect(host='localhost', port=27017, db_name='maroon'):
-    conf['connection'] = pymongo.Connection(host,port)
-    conf['database'] = getattr(conf['connection'], db_name)
 
 
 class Property(object):
@@ -111,6 +100,10 @@ class TextProperty(Property):
         return val
 
 
+class IdProperty(Property):
+    pass
+
+
 class RegexTextProperty(TextProperty):
     def __init__(self, pattern, **kwargs):
         TextProperty.__init__(self, **kwargs)
@@ -191,6 +184,8 @@ class SlugListProperty(ListProperty):
 
 
 class Model(object):
+    _id = IdProperty()
+
     def __init__(self, from_dict=None, **kwargs):
         if from_dict:
             self.update(from_dict)
@@ -250,21 +245,15 @@ class Model(object):
             setattr(self,k,v)
 
     def save(self):
-        d = self.to_d()
-        self.collection().save(d)
-        self._id = d['_id'] # save the unique id from mongo
-        return self
-
-    @classmethod
-    def collection(self):
-        if not conf.get('database'):
-            connect()
-        return getattr(conf['database'],self.__name__)
-
-    @classmethod
-    def find(self, q=None):
-        return self.collection().find(q)
+        return self.database.save(self)
 
     def delete(self):
-        if hasattr(self, '_id'):
-            self.collection().remove({'_id':self._id})
+        return self.database.get(self.__class__.__name__,self._id)
+
+    @classmethod
+    def get(cls, _id):
+        return cls.database.get(cls,_id)
+
+    @classmethod
+    def get_all(cls,):
+        return cls.database.get_all(cls)
