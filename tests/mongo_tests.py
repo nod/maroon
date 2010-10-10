@@ -9,6 +9,7 @@ import unittest
 import maroon
 from maroon import Model, IntProperty, Property
 from mongo import MongoDB
+from models import SimpleModel, FunModel
 
 
 class SimpleModel(Model):

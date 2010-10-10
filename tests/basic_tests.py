@@ -3,21 +3,12 @@
 import sys
 sys.path.append("..")
 
-import pymongo
 import unittest
 
 import maroon
 from maroon import Model, IntProperty, Property
 
-
-class SimpleModel(Model):
-    '''
-    A very simple example of a model consisting of a few simple members.  This will
-    be used to test simple assignment and also dictionary exporting
-    '''
-    int1 = IntProperty("i1")
-    int2 = IntProperty("i2")
-
+from models import SimpleModel, FunModel
 
 class TestBasicModelCreationAndAssignment(unittest.TestCase):
 

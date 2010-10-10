@@ -159,7 +159,7 @@ class ListPropertyInstance(list):
 
 class ListProperty(Property):
     def __init__(self, name, kind=None, **kwargs):
-        Property.__init__(self, **kwargs)
+        Property.__init__(self, name, **kwargs)
         #FIXME: Do we want this check in production?
         if kind is str:
             raise ValueError("ListProperty should look for basestring, not str.")
@@ -191,18 +191,29 @@ class SlugListProperty(ListProperty):
 
 class ModelPart(object):
     def __init__(self, from_dict=None, **kwargs):
+        #FIXME: properties cannot be added to a Model at runtime.
+        try:
+            props = self.__props
+        except:
+            props = self.__make_props()
         if from_dict:
             self.update(from_dict)
         self.update(kwargs)
 
         #set default values for anything the updates missed
+        for prop in self.__props.values():
+            val = prop.default()
+            if val is not None:
+                self.__dict__[name] = val
+
+    def __make_props(self):
+        self.__props = {}
         for name in dir(self):
             if name not in self.__dict__:
                 prop = getattr(type(self),name)
                 if isinstance(prop, Property):
-                    val = prop.default()
-                    if val is not None:
-                        self.__dict__[name] = val
+                    self.__props[prop._name] = prop
+        return self.__props
 
     def __getattribute__(self, name):
         '''Hide Propertys in instances of Models.'''
@@ -244,8 +255,8 @@ class ModelPart(object):
             setattr(self,k,v)
 
 class ModelProperty(TypedProperty):
-    def  __init__(self, name, **kwargs):
-        TypedProperty.__init__(self, name, ModelPart, **kwargs)
+    def  __init__(self, name, part, **kwargs):
+        TypedProperty.__init__(self, name, part, **kwargs)
 
 class Model(ModelPart):
     _id = IdProperty("_id")
