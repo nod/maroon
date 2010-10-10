@@ -250,7 +250,7 @@ class Model(object):
             setattr(self,k,v)
 
     def save(self):
-        d = self.to_dict()
+        d = self.to_d()
         self.collection().save(d)
         self._id = d['_id'] # save the unique id from mongo
         return self

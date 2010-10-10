@@ -68,7 +68,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
     def test_dict_creation(self):
         self.o1.i1 = 1
-        self.failUnlessEqual(self.o1.to_dict(), {'i1':1})
+        self.failUnlessEqual(self.o1.to_d(), {'i1':1})
 
     def test_init_from_dict(self):
         self.o2.i1 = 3
@@ -133,7 +133,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         item.save()
         result = SimpleModel.find()[0]
         self.failUnlessEqual( result['i2'], None)
-        self.failUnlessEqual( result, item.to_dict())
+        self.failUnlessEqual( result, item.to_d())
 
     def test_simple_queries(self):
         self.o1.i1 = 10
