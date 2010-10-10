@@ -248,11 +248,11 @@ class Model(object):
         return self.database.save(self)
 
     def delete(self):
-        return self.database.get(self.__class__.__name__,self._id)
+        return self.database.delete_id(self.__class__.__name__,self._id)
 
     @classmethod
-    def get(cls, _id):
-        return cls.database.get(cls,_id)
+    def get_id(cls, _id):
+        return cls.database.get_id(cls,_id)
 
     @classmethod
     def get_all(cls,):

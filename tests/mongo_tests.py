@@ -38,24 +38,24 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o1.i1 = 1
         self.o1.i2 = 2
         self.o1.save()
-        ob = SimpleModel.get("mustafa")
+        ob = SimpleModel.get_id("mustafa")
         ob.i2 = 3
         ob.save()
-        ob = SimpleModel.get("mustafa")
+        ob = SimpleModel.get_id("mustafa")
         self.failUnlessEqual(3, ob.i2)
 
     def test_missing_fields(self):
         obj1 = SimpleModel({'_id':'simba','i1':2})
         obj1.save()
-        ob = SimpleModel.get('simba')
+        ob = SimpleModel.get_id('simba')
         self.failUnlessEqual(ob.i2, None)
 
     def test_set_missing_field(self):
         SimpleModel({'i1':2,'_id':'timon'}).save()
-        ob = SimpleModel.get('timon')
+        ob = SimpleModel.get_id('timon')
         ob.i2 = 15
         ob.save()
-        ob = SimpleModel.get('timon')
+        ob = SimpleModel.get_id('timon')
         self.failUnlessEqual(ob.i2, 15)
 
     def test_remove_field(self):
@@ -63,14 +63,14 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o2.i1 = 2
         self.o2.i2 = 3
         self.o2.save()
-        item = SimpleModel.get("nala")
+        item = SimpleModel.get_id("nala")
         self.failUnlessEqual( item.i2, 3)
         item.i2 = None
         item.save()
-        result = SimpleModel.get("nala")
+        result = SimpleModel.get_id("nala")
         self.failUnlessEqual( result.i2, None)
 
 if __name__ == '__main__':
-    Model.database = MongoDB('test_maroon')
-    Model.database.database['SimpleModel'].remove()
+    Model.database = MongoDB(None,'test_maroon')
+    Model.database['SimpleModel'].remove()
     unittest.main()

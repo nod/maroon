@@ -8,7 +8,7 @@ class CouchDB(object):
         #    self.__dict__['doc_type'] = self.__class__.__name__.lower()
 
     @classmethod
-    def get(self, key, **kwargs):
+    def get_id(self, key, **kwargs):
         """gets object from couchdb if couchdb instance is available"""
         self.couchdb.get(key, **kwargs)
 
