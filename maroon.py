@@ -11,8 +11,9 @@ SLUG_REGEX = re.compile('[\w@\.]+$')
 
 
 class Property(object):
-    def __init__(self, default=None, to_d=None, null=True):
-        self._default=default
+    def __init__(self, name, default=None, to_d=None, null=True):
+        self._default = default
+        self._name = name or None
         self._to_d = to_d
         self.null = null
 
@@ -36,8 +37,8 @@ class Property(object):
 
 
 class EnumProperty(Property):
-    def __init__(self, constants, **kwargs):
-        Property.__init__(self, constants, **kwargs)
+    def __init__(self, name, constants, **kwargs):
+        Property.__init__(self, name, constants, **kwargs)
         self.constants = constants
 
     def validated(self, val):
@@ -48,8 +49,8 @@ class EnumProperty(Property):
 
 
 class TypedProperty(Property):
-    def  __init__(self, kind, **kwargs):
-        Property.__init__(self, **kwargs)
+    def  __init__(self, name, kind, **kwargs):
+        Property.__init__(self, name, **kwargs)
         self.kind = kind
 
     def validated(self, val):
@@ -61,24 +62,29 @@ class TypedProperty(Property):
 
 
 class BoolProperty(TypedProperty):
-    def  __init__(self, **kwargs):
-        TypedProperty.__init__(self,bool, **kwargs)
+    def  __init__(self, name, **kwargs):
+        TypedProperty.__init__(self, name, bool, **kwargs)
 
 
 class IntProperty(TypedProperty):
-    def  __init__(self, **kwargs):
-        TypedProperty.__init__(self,int, **kwargs)
+    def  __init__(self, name, **kwargs):
+        TypedProperty.__init__(self, name, int, **kwargs)
 
 
 class FloatProperty(TypedProperty):
-    def  __init__(self, **kwargs):
-        TypedProperty.__init__(self,float, **kwargs)
+    def  __init__(self, name, **kwargs):
+        TypedProperty.__init__(self, name, float, **kwargs)
+
+
+class DictProperty(TypedProperty):
+    def  __init__(self, name, **kwargs):
+        TypedProperty.__init__(self, name, dict, **kwargs)
 
 
 class DateTimeProperty(TypedProperty):
-    def  __init__(self, **kwargs):
+    def  __init__(self, name, **kwargs):
         "Creates a DateTimeProperty.  The to_d kwarg is ignored."
-        TypedProperty.__init__(self,datetime.datetime, **kwargs)
+        TypedProperty.__init__(self, name, datetime.datetime, **kwargs)
 
     def validated(self, val):
         "Accepts either a datetime or list of 6 ints.  Returns a datetime."
@@ -105,8 +111,8 @@ class IdProperty(Property):
 
 
 class RegexTextProperty(TextProperty):
-    def __init__(self, pattern, **kwargs):
-        TextProperty.__init__(self, **kwargs)
+    def __init__(self, name, pattern, **kwargs):
+        TextProperty.__init__(self, name, **kwargs)
         self._pattern = re.compile(pattern)
 
     def validated(self, value):
@@ -126,8 +132,8 @@ class RegexTextProperty(TextProperty):
 
 
 class SlugProperty(RegexTextProperty):
-    def __init__(self, **kwargs):
-        RegexTextProperty.__init__(self, SLUG_REGEX, **kwargs)
+    def __init__(self, name, **kwargs):
+        RegexTextProperty.__init__(self, name, SLUG_REGEX, **kwargs)
 
 
 class CreatedAtProperty(DateTimeProperty):
@@ -152,7 +158,7 @@ class ListPropertyInstance(list):
 
 
 class ListProperty(Property):
-    def __init__(self, kind=None, **kwargs):
+    def __init__(self, name, kind=None, **kwargs):
         Property.__init__(self, **kwargs)
         #FIXME: Do we want this check in production?
         if kind is str:
@@ -172,8 +178,8 @@ class ListProperty(Property):
 
 
 class SlugListProperty(ListProperty):
-    def __init__(self, **kwargs):
-        ListProperty.__init__(self, basestring, **kwargs)
+    def __init__(self, name, **kwargs):
+        ListProperty.__init__(self, name, basestring, **kwargs)
 
     def validated_item(self, val):
         if not SLUG_REGEX.match(val):
@@ -183,9 +189,7 @@ class SlugListProperty(ListProperty):
         return val
 
 
-class Model(object):
-    _id = IdProperty()
-
+class ModelPart(object):
     def __init__(self, from_dict=None, **kwargs):
         if from_dict:
             self.update(from_dict)
@@ -199,11 +203,6 @@ class Model(object):
                     val = prop.default()
                     if val is not None:
                         self.__dict__[name] = val
-
-        #For couch: let's seed the doc_type with our class name
-        #if not self.__dict__.has_key('doc_type'):
-        #    self.__dict__['doc_type'] = self.__class__.__name__.lower()
-
 
     def __getattribute__(self, name):
         '''Hide Propertys in instances of Models.'''
@@ -243,6 +242,13 @@ class Model(object):
         "using __dict__.update instead of this will bypass __setattr__"
         for k,v in d.iteritems():
             setattr(self,k,v)
+
+class ModelProperty(TypedProperty):
+    def  __init__(self, name, **kwargs):
+        TypedProperty.__init__(self, name, ModelPart, **kwargs)
+
+class Model(ModelPart):
+    _id = IdProperty("_id")
 
     def save(self):
         return self.database.save(self)
