@@ -12,8 +12,8 @@ SLUG_REGEX = re.compile('[\w@\.]+$')
 
 class Property(object):
     def __init__(self, name, default=None, to_d=None, null=True):
+        self.name = name or None
         self._default = default
-        self._name = name or None
         self._to_d = to_d
         self.null = null
 
@@ -190,30 +190,28 @@ class SlugListProperty(ListProperty):
 
 
 class ModelPart(object):
+    def __new__(kind, *args, **kwargs):
+        #FIXME: properties cannot be added to a Model at runtime!
+        if 'long_names' not in kind.__dict__:
+            kind.long_names = {}
+            for name in dir(kind):
+                prop = getattr(kind,name)
+                if isinstance(prop, Property):
+                    kind.long_names[prop.name] = name
+        return object.__new__(kind)
+
     def __init__(self, from_dict=None, **kwargs):
-        #FIXME: properties cannot be added to a Model at runtime.
-        try:
-            props = self.__props
-        except:
-            props = self.__make_props()
         if from_dict:
             self.update(from_dict)
         self.update(kwargs)
 
         #set default values for anything the updates missed
-        for prop in self.__props.values():
-            val = prop.default()
-            if val is not None:
-                self.__dict__[name] = val
-
-    def __make_props(self):
-        self.__props = {}
         for name in dir(self):
-            if name not in self.__dict__:
-                prop = getattr(type(self),name)
-                if isinstance(prop, Property):
-                    self.__props[prop._name] = prop
-        return self.__props
+            prop = getattr(type(self),name,None)
+            if prop and isinstance(prop, Property):
+                val = prop.default()
+                if val is not None:
+                    self.__dict__[name] = val
 
     def __getattribute__(self, name):
         '''Hide Propertys in instances of Models.'''
@@ -234,29 +232,29 @@ class ModelPart(object):
         self.__dict__[n] = v
 
     def to_d(self):
-        '''
-        Build a dictionary from all non-callable entities attached to our
-        object.  This will return any Propertys on the object, but also any
-        object members added after the fact.
-        '''
+        'Build a dictionary from all the properties attached to self.'
         d = dict()
-        for (k,v) in self.__dict__.iteritems():
-            if not callable(v):
-                prop = getattr(type(self),k,None)
-                if prop and isinstance(prop, Property):
-                    d[k]=prop.to_d(v)
-                else:
-                    d[k]=v
+        for name in dir(self):
+            val = getattr(self,name)
+            prop = getattr(type(self),name,None)
+            if val is not None and prop and isinstance(prop, Property):
+                d[prop.name]=prop.to_d(val)
         return d
 
     def update(self,d):
-        "using __dict__.update instead of this will bypass __setattr__"
+        """convert key names in d to long names, and then use d to update
+        self.__dict__"""
         for k,v in d.iteritems():
-            setattr(self,k,v)
+            setattr(self,self.long_names.get(k,k),v)
+
 
 class ModelProperty(TypedProperty):
-    def  __init__(self, name, part, **kwargs):
+    def __init__(self, name, part, **kwargs):
         TypedProperty.__init__(self, name, part, **kwargs)
+
+    def to_d(self, val):
+        return val.to_d()
+
 
 class Model(ModelPart):
     _id = IdProperty("_id")
