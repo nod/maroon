@@ -8,7 +8,7 @@ import unittest
 import maroon
 from maroon import Model, IntProperty, Property
 
-from models import SimpleModel, FunModel
+from models import SimpleModel, FunModel, PersonModel
 
 class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
@@ -18,10 +18,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o3 = SimpleModel()
 
     def test_simple_assign_bogus(self):
-        # test for assigning an obvious non-integer 
-        def _bogus_assign():
-            self.o1.int1 = 'bogus'
-        self.failUnlessRaises(ValueError, _bogus_assign)
+        self.assertRaises(ValueError, setattr, self.o1, 'int1', 'bogus')
 
     def test_simple_assign_obvious(self):
         # test for an obvious integer
@@ -57,6 +54,21 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.failUnlessEqual( 2, obj1.int1 )
         self.failUnlessEqual( 3, obj2.int1 )
         self.failUnlessEqual( 7, obj2.int2 )
+
+    def test_fun_model(self):
+        fun = FunModel()
+        self.assertRaises(TypeError, setattr, fun, 'enum', 'green')
+        self.assertRaises(ValueError, setattr, fun, 'real', 'i')
+        self.assertRaises(TypeError, setattr, fun, 'dic', [2,3])
+        self.assertRaises(TypeError, setattr, fun, 'created', 7)
+        self.assertRaises(TypeError, setattr, fun, 'names', [7,8])
+        self.assertRaises(TypeError, setattr, fun, 'names', 13)
+        self.assertEqual(fun.part.age, 7)
+        fun.part.age=100
+        self.assertEqual(fun.part.age, 100)
+        fun.part = {'n':'jeff'}
+        self.assertEqual(fun.part.age, 7)
+        self.assertEqual(fun.part.name, 'jeff')
 
 
 if __name__ == '__main__':

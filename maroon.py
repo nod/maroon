@@ -21,9 +21,9 @@ class Property(object):
         return self._default
 
     def validated(self, val):
-        """Subclasses raise ValueError if they are sent invalid data.  If this
-        method is overridden, it may return a functionally-equivalent copy of
-        val."""
+        """Subclasses raise TypeError or ValueError if they are sent invalid
+        data.  If this method is overridden, it may return a
+        functionally-equivalent copy of val."""
         if val is None and not self.null:
             raise ValueError("You can't assign None to an non-null property.")
         return val
@@ -44,7 +44,7 @@ class EnumProperty(Property):
     def validated(self, val):
         val = Property.validated(self, val)
         if val not in self.constants:
-            raise ValueError("value not in %r"%self.constants)
+            raise TypeError("value not in %r"%self.constants)
         return val
 
 
@@ -57,7 +57,7 @@ class TypedProperty(Property):
         val = Property.validated(self, val)
         ret = self.kind(val)
         if ret != val:
-            raise ValueError("value %r not %s"%(val,self.kind.__name__))
+            raise TypeError("value %r not %s"%(val,self.kind.__name__))
         return ret
 
 
@@ -102,7 +102,7 @@ class TextProperty(Property):
     def validated(self, val):
         val = Property.validated(self, val)
         if not isinstance(val, basestring):
-            raise ValueError("value not text")
+            raise TypeError("value not text")
         return val
 
 
@@ -160,9 +160,6 @@ class ListPropertyInstance(list):
 class ListProperty(Property):
     def __init__(self, name, kind=None, **kwargs):
         Property.__init__(self, name, **kwargs)
-        #FIXME: Do we want this check in production?
-        if kind is str:
-            raise ValueError("ListProperty should look for basestring, not str.")
         self._kind = kind
 
     def validated(self, val):
@@ -173,7 +170,7 @@ class ListProperty(Property):
 
     def validated_item(self, val):
         if self._kind and not isinstance(val, self._kind):
-            raise ValueError("")
+            raise TypeError("%s in list is not a %s"%(val,self._kind.__name__))
         return val
 
 
@@ -252,6 +249,9 @@ class ModelPart(object):
 class ModelProperty(TypedProperty):
     def __init__(self, name, part, **kwargs):
         TypedProperty.__init__(self, name, part, **kwargs)
+
+    def default(self):
+        return self.kind(from_dict=self._default)
 
     def to_d(self, val):
         return val.to_d()
