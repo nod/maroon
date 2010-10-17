@@ -2,24 +2,17 @@
 
 import sys
 sys.path.append("..")
+import unittest
+from operator import attrgetter
+import datetime
 
 import pymongo
-import unittest
 
 import maroon
 from maroon import Model, IntProperty, Property
 from mongo import MongoDB
 from couch import CouchDB
-from models import SimpleModel, FunModel
-
-
-class SimpleModel(Model):
-    '''
-    A very simple example of a model consisting of a few simple members.  This will
-    be used to test simple assignment and also dictionary exporting
-    '''
-    int1 = IntProperty("i1")
-    int2 = IntProperty("i2")
+from models import SimpleModel, FunModel, PersonModel
 
 
 class TestBasicModelCreationAndAssignment(unittest.TestCase):
@@ -72,11 +65,47 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         result = SimpleModel.get_id("nala")
         self.failUnlessEqual( result.int2, None)
 
+    def test_get_all(self):
+        for name in ['pumba','zazu']:
+            m = PersonModel(name=name, age=(10+len(name)))
+            m.save()
+
+        people = sorted(PersonModel.get_all(),key=attrgetter('age'))
+        self.failUnlessEqual( people[0].name, 'zazu')
+        self.failUnlessEqual( people[0].age, 14)
+        self.failUnlessEqual( people[1].name, 'pumba')
+        self.failUnlessEqual( people[1].age, 15)
+
+    def test_fun_model(self):
+        dic = {"one":2, 'three':"four", 'five':["six",7]}
+        names = ['Shenzi', 'Banzai', 'ed']
+        now = datetime.datetime.now()
+        fun = FunModel(
+                _id="fun",
+                enum="red",
+                real=3.14,
+                dic=dic,
+                names=names,
+                )
+        fun.part=PersonModel(name="scar", age=32)
+        fun.save()
+        fun = FunModel.get_id("fun")
+        self.failUnlessEqual( fun.enum, 'red')
+        self.failUnlessEqual( fun.real, 3.14)
+        self.failUnlessEqual( fun.dic, dic)
+        dt = abs(fun.created-now)
+        self.failUnless( dt.days==0 and dt.seconds==0 )
+        self.failUnlessEqual( fun.names, names)
+        self.failUnlessEqual( fun.part.name, "scar")
+        self.failUnlessEqual( fun.part.age, 32)
+
+
 if __name__ == '__main__':
     db = sys.argv[1]
     if db=='mongo':
         Model.database = MongoDB(None,'test_maroon')
-        Model.database['SimpleModel'].remove()
+        for m in ('SimpleModel', 'FunModel', 'PersonModel'):
+            Model.database[m].remove()
     elif db=='couch':
         Model.database = CouchDB('http://127.0.0.1:5984/test_maroon',True)
         Model.database.flush()

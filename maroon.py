@@ -205,10 +205,11 @@ class ModelPart(object):
             self.update(from_dict)
         self.update(kwargs)
 
-        #set default values for anything the updates missed
-        for name in dir(self):
+        #set defaults
+        for name in self.long_names.values():
+            old_val = getattr(self,name,None)
             prop = getattr(type(self),name,None)
-            if prop and isinstance(prop, Property):
+            if old_val is None and prop is not None:
                 val = prop.default()
                 if val is not None:
                     self.__dict__[name] = val
@@ -254,6 +255,12 @@ class ModelProperty(TypedProperty):
 
     def to_d(self, val):
         return val.to_d()
+
+    def validated(self, val):
+        val = Property.validated(self, val)
+        if not isinstance(val, self.kind):
+            return self.kind(val)
+        return val
 
 
 class Model(ModelPart):

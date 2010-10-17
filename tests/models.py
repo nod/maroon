@@ -12,7 +12,7 @@ class SimpleModel(Model):
     int2 = IntProperty("i2")
 
 
-class PersonModel(ModelPart):
+class PersonModel(Model):
     name = TextProperty("n")
     age = IntProperty("a", default=7)
 
