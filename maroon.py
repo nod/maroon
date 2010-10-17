@@ -258,6 +258,7 @@ class ModelProperty(TypedProperty):
 
 class Model(ModelPart):
     _id = IdProperty("_id")
+    _rev = IdProperty('_rev')
 
     def save(self):
         return self.database.save(self)

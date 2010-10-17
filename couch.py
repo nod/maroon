@@ -1,41 +1,21 @@
 import couchdbkit
+from couchdbkit import Database
 
-# This code is, and will probably continue to be, broken!
-class CouchDB(object):
+class CouchDB(Database):
+    def save(self, model):
+        d = model.to_d()
+        d.setdefault('doc_type',model.__class__.__name__)
+        self.save_doc(d)
+        model._id = d['_id'] # save the unique id from couchdb
+        model._rev = d['_rev'] # save the unique id from couchdb
+        return model
 
-        # let's seed the doc_type with our class name
-        #if not self.__dict__.has_key('doc_type'):
-        #    self.__dict__['doc_type'] = self.__class__.__name__.lower()
+    def get_id(self, cls, _id):
+        d = self.open_doc(_id)
+        return cls(d)
 
-    @classmethod
-    def get_id(self, key, **kwargs):
-        """gets object from couchdb if couchdb instance is available"""
-        self.couchdb.get(key, **kwargs)
-
-    def save(self, callback=None):
-        """gets object from couchdb if couchdb instance is available"""
-        if not callback:
-            callback = self._save_generic_cb
-        _id = self.__dict__.get('_id')
-        if _id:
-            self.couchdb.set(_id, self.to_d(), callback)
-        else:
-            self.couchdb.set(self.to_d(), callback)
-
-    def _save_generic_cb(self, doc):
-        if doc.error:
-            print "ERROR:", doc.msg
-
-    @classmethod
-    def view(self, resource, callback, **kwargs):
-        """
-        Return a list of documents at the specified view.  The return is always
-        a list, even if only one item matches.
-
-        - resource : should be of the form  'design/view'
-        - callback : a valid callback function. async ftw!
-        """
-        des, res = resource.split('/')
-        self.couchdb.view(des, res, callback, **kwargs)
-
-
+    def get_all(self, cls):
+        #FIXME: this should page results so it doesn't crash and burn!
+        for doc in self.all_docs():
+            if doc.get('doc_type',None) == cls.__name__:
+                yield cls(item)

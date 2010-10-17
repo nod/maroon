@@ -27,7 +27,3 @@ class MongoDB(Database):
         coll = self[cls.__name__]
         for item in coll.find():
             yield cls(item)
-
-    def delete_id(self, doc_type, _id):
-        coll = self[doc_type]
-        return coll.remove(_id)

@@ -9,6 +9,7 @@ import unittest
 import maroon
 from maroon import Model, IntProperty, Property
 from mongo import MongoDB
+from couch import CouchDB
 from models import SimpleModel, FunModel
 
 
@@ -72,6 +73,15 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.failUnlessEqual( result.int2, None)
 
 if __name__ == '__main__':
-    Model.database = MongoDB(None,'test_maroon')
-    Model.database['SimpleModel'].remove()
-    unittest.main()
+    db = sys.argv[1]
+    if db=='mongo':
+        Model.database = MongoDB(None,'test_maroon')
+        Model.database['SimpleModel'].remove()
+    elif db=='couch':
+        Model.database = CouchDB('http://127.0.0.1:5984/test_maroon',True)
+        Model.database.flush()
+    else:
+        print "Usage: ./database_tests.py [mongo|couch]"
+    if hasattr(Model,'database'):
+        del sys.argv[1]
+        unittest.main()

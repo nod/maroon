@@ -1,8 +1,11 @@
 #!/bin/bash
 export PYTHONPATH=".."
 cd tests
-for test in *tests.py
-do
-	echo "running $test"
-    python $test
-done
+echo "running basic"
+python basic_tests.py
+
+echo "running couch"
+python database_tests.py couch
+
+echo "running mongo"
+python database_tests.py mongo
