@@ -38,7 +38,7 @@ class Property(object):
 
 class EnumProperty(Property):
     def __init__(self, name, constants, **kwargs):
-        Property.__init__(self, name, constants, **kwargs)
+        Property.__init__(self, name, **kwargs)
         self.constants = constants
 
     def validated(self, val):
@@ -82,12 +82,15 @@ class DictProperty(TypedProperty):
 
 
 class DateTimeProperty(TypedProperty):
-    def  __init__(self, name, **kwargs):
+    def  __init__(self, name, format=None, **kwargs):
         "Creates a DateTimeProperty.  The to_d kwarg is ignored."
         TypedProperty.__init__(self, name, datetime.datetime, **kwargs)
+        self._format = format
 
     def validated(self, val):
         "Accepts either a datetime or list of 6 ints.  Returns a datetime."
+        if self._format and isinstance(val,basestring):
+            return datetime.datetime.strptime(val,self._format)
         if len(val) > 2:
             return datetime.datetime(*val[:6])
         return TypedProperty.validated(self, val)

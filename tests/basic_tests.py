@@ -63,6 +63,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.assertRaises(TypeError, setattr, fun, 'created', 7)
         self.assertRaises(TypeError, setattr, fun, 'names', [7,8])
         self.assertRaises(TypeError, setattr, fun, 'names', 13)
+        self.assertEqual(fun.enum, None)
         self.assertEqual(fun.part.age, 7)
         fun.part.age=100
         self.assertEqual(fun.part.age, 100)
