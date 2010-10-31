@@ -16,8 +16,8 @@ class CouchDB(Database):
         return cls(d)
 
     def get_all(self, cls):
-        #FIXME: this should page results so it doesn't crash and burn!
-        for doc in self.all_docs(include_docs=True):
+        #FIXME: this should use a view instead!
+        for doc in self.paged_view('_all_docs',include_docs=True):
             if doc['doc'].get('doc_type',None) == cls.__name__:
                 yield cls(doc['doc'])
 
