@@ -3,7 +3,7 @@ maroon models - simplified object-relational mapper for Python and MongoDB
 by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 '''
 
-import datetime
+from datetime import datetime as _dt
 import re
 
 
@@ -81,19 +81,22 @@ class DictProperty(TypedProperty):
         TypedProperty.__init__(self, name, dict, **kwargs)
 
 
-class DateTimeProperty(TypedProperty):
+class DateTimeProperty(Property):
     def  __init__(self, name, format=None, **kwargs):
         "Creates a DateTimeProperty.  The to_d kwarg is ignored."
-        TypedProperty.__init__(self, name, datetime.datetime, **kwargs)
+        Property.__init__(self, name, **kwargs)
         self._format = format
 
     def validated(self, val):
-        "Accepts either a datetime or list of 6 ints.  Returns a datetime."
+        "Accepts datetime, string, or list of 6 ints.  Returns a datetime."
+        if isinstance(val,_dt):
+            return val
         if self._format and isinstance(val,basestring):
-            return datetime.datetime.strptime(val,self._format)
+            return _dt.strptime(val,self._format)
         if len(val) > 2:
-            return datetime.datetime(*val[:6])
-        return TypedProperty.validated(self, val)
+            return _dt(*val[:6])
+        raise TypeError("value %r isn't a datetime"%val)
+
 
     def to_d(self, val):
         return val.timetuple()[0:6]
@@ -141,7 +144,7 @@ class SlugProperty(RegexTextProperty):
 
 class CreatedAtProperty(DateTimeProperty):
     def default(self):
-        return datetime.datetime.now()
+        return _dt.utcnow()
 
 
 class ListPropertyInstance(list):

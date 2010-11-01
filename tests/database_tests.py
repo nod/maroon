@@ -79,7 +79,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
     def test_fun_model(self):
         dic = {"one":2, 'three':"four", 'five':["six",7]}
         names = ['Shenzi', 'Banzai', 'ed']
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         fun = FunModel(
                 _id="fun",
                 enum="red",
