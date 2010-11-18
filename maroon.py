@@ -241,7 +241,7 @@ class ModelPart(object):
         for name in dir(self):
             val = getattr(self,name)
             prop = getattr(type(self),name,None)
-            if val is not None and prop and isinstance(prop, Property):
+            if val is not None and prop is not None and isinstance(prop, Property):
                 d[prop.name]=prop.to_d(val)
         return d
 
