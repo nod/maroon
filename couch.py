@@ -11,6 +11,14 @@ class CouchDB(Database):
         model._rev = d['_rev'] # save the unique id from couchdb
         return model
 
+    def bulk_save_models(self, models):
+        ds = []
+        for m in models:
+            d = m.to_d()
+            d.setdefault('doc_type',m.__class__.__name__)
+            ds.append(d)
+        return self.bulk_save(ds)
+
     def get_id(self, cls, _id):
         d = self.open_doc(_id)
         return cls(d)
@@ -30,5 +38,6 @@ class CouchDB(Database):
                 yield r
             if len(res) != page_size+1:
                 break
-            params['startkey']=res[-1]['key']
-            params['startkey_docid']=res[-1]['id']
+            last = res[-1]
+            params['startkey']=last['key']
+            params['startkey_docid']=last.get('id') # sometimes there is no id
