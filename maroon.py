@@ -291,3 +291,13 @@ class Model(ModelPart):
     def paged_view(cls,view_name,**kwargs):
         "only works with couchdb"
         return cls.database.paged_view(view_name,cls=cls,**kwargs)
+
+class ModelCache(dict):
+    def __init__(self, Class, **kwargs):
+        dict.__init__(self, **kwargs)
+        self.Class = Class
+
+    def __missing__(self, key):
+        obj = self.Class.get_id(str(key))
+        self[key] = obj
+        return obj
