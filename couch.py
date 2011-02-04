@@ -21,13 +21,19 @@ class CouchDB(Database):
             if doc['doc'].get('doc_type',None) == cls.__name__:
                 yield cls(doc['doc'])
 
-    def paged_view(self, view_name, page_size=1000, **params):
+    def paged_view(self, view_name, page_size=1000, cls=None, **params):
+        #FIXME: This is broken for reduced views that lack ids
         #FIXME: you can't set a limit with a paged view!
         params['limit']=page_size+1
+        if cls:
+            params['include_docs']=True
         while True:
             res = list(self.view(view_name, **params))
             for r in res[0:page_size]:
-                yield r
+                if cls:
+                    yield cls(r['doc'])
+                else:
+                    yield r
             if len(res) != page_size+1:
                 break
             params['startkey']=res[-1]['key']

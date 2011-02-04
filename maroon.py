@@ -284,5 +284,10 @@ class Model(ModelPart):
         return cls.database.get_id(cls,_id)
 
     @classmethod
-    def get_all(cls,):
+    def get_all(cls):
         return cls.database.get_all(cls)
+
+    @classmethod
+    def paged_view(cls,view_name,**kwargs):
+        "only works with couchdb"
+        return cls.database.paged_view(view_name,cls=cls,**kwargs)
