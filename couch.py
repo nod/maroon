@@ -5,7 +5,6 @@ from couchdbkit import Database
 class CouchDB(Database):
     def save(self, model):
         d = model.to_d()
-        d.setdefault('doc_type',model.__class__.__name__)
         self.save_doc(d)
         model._id = d['_id'] # save the unique id from couchdb
         model._rev = d['_rev'] # save the unique id from couchdb
@@ -15,7 +14,6 @@ class CouchDB(Database):
         ds = []
         for m in models:
             d = m.to_d()
-            d.setdefault('doc_type',m.__class__.__name__)
             ds.append(d)
         return self.bulk_save(ds)
 
@@ -24,9 +22,8 @@ class CouchDB(Database):
         return cls(d)
 
     def get_all(self, cls):
-        #FIXME: this should use a view instead!
         for doc in self.paged_view('_all_docs',include_docs=True):
-            if doc['doc'].get('doc_type',None) == cls.__name__:
+            if doc['id'][0]!='_':
                 yield cls(doc['doc'])
 
     def paged_view(self, view_name, page_size=1000, **params):

@@ -286,3 +286,14 @@ class Model(ModelPart):
     @classmethod
     def get_all(cls,):
         return cls.database.get_all(cls)
+
+
+class ModelCache(dict):
+    def __init__(self, Class, **kwargs):
+        dict.__init__(self, **kwargs)
+        self.Class = Class
+
+    def __missing__(self, key):
+        obj = self.Class.get_id(str(key))
+        self[key] = obj
+        return obj
