@@ -15,7 +15,7 @@ class CouchDB(Database):
         for m in models:
             d = m.to_d()
             ds.append(d)
-        return self.bulk_save(ds)
+        self.bulk_save(ds)
 
     def get_id(self, cls, _id):
         d = self.open_doc(_id)

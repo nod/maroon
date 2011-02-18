@@ -5,6 +5,14 @@ by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 
 import pymongo
 from pymongo.database import Database
+import itertools
+
+
+def peek(iterable):
+    it = iter(iterable)
+    first = it.next()
+    return first, itertools.chain([first],it)
+
 
 class MongoDB(Database):
     def __init__(self, connection=None, name='maroon'):
@@ -12,18 +20,32 @@ class MongoDB(Database):
             connection = pymongo.Connection()
         Database.__init__(self,connection,name)
 
+    def _coll(self, model):
+        return self[model.__class__.__name__]
+
+    def bulk_save_models(self, models, cls=None):
+        if cls == None:
+            first, ms = peek(models)
+            coll = self._coll(first)
+        else:
+            ms = models
+            coll = self[cls.__name__]
+        coll.insert(m.to_d() for m in ms)
+
     def save(self, model):
         d = model.to_d()
-        coll = self[model.__class__.__name__]
-        coll.save(d)
+        self._coll(model).save(d)
         model._id = d['_id'] # save the unique id from mongo
         return model
 
     def get_id(self, cls, _id):
-        coll = self[cls.__name__]
-        return cls(coll.find_one(_id))
+        return cls(self[cls.__name__].find_one(_id))
 
     def get_all(self, cls):
         coll = self[cls.__name__]
         for item in coll.find():
             yield cls(item)
+
+    def in_coll(self, cls, _id):
+        return bool(self[cls.__name__].find(dict(_id=_id)).count())
+

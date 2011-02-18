@@ -5,7 +5,7 @@ echo "running basic"
 python basic_tests.py
 
 echo "running couch"
-python database_tests.py couch
+#python database_tests.py couch
 
 echo "not running mongo"
-#python database_tests.py mongo
+python database_tests.py mongo

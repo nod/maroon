@@ -280,6 +280,14 @@ class Model(ModelPart):
         return self.database.delete_id(self.__class__.__name__,self._id)
 
     @classmethod
+    def bulk_save(cls, models):
+        return self.database.bulk_save_models(models, cls)
+
+    @classmethod
+    def in_db(cls,_id):
+        return cls.database.in_coll(cls, _id)
+
+    @classmethod
     def get_id(cls, _id):
         return cls.database.get_id(cls,_id)
 
@@ -291,6 +299,7 @@ class Model(ModelPart):
     def paged_view(cls,view_name,**kwargs):
         "only works with couchdb"
         return cls.database.paged_view(view_name,cls=cls,**kwargs)
+
 
 class ModelCache(dict):
     def __init__(self, Class, **kwargs):
