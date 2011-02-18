@@ -15,9 +15,9 @@ def peek(iterable):
 
 
 class MongoDB(Database):
-    def __init__(self, connection=None, name='maroon'):
+    def __init__(self, connection=None, name='maroon', **kwargs):
         if connection==None:
-            connection = pymongo.Connection()
+            connection = pymongo.Connection(**kwargs)
         Database.__init__(self,connection,name)
 
     def _coll(self, model):
