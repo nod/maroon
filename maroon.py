@@ -281,7 +281,7 @@ class Model(ModelPart):
 
     @classmethod
     def bulk_save(cls, models):
-        return self.database.bulk_save_models(models, cls)
+        return cls.database.bulk_save_models(models, cls)
 
     @classmethod
     def in_db(cls,_id):

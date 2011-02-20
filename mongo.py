@@ -5,13 +5,6 @@ by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 
 import pymongo
 from pymongo.database import Database
-import itertools
-
-
-def peek(iterable):
-    it = iter(iterable)
-    first = it.next()
-    return first, itertools.chain([first],it)
 
 
 class MongoDB(Database):
@@ -24,13 +17,10 @@ class MongoDB(Database):
         return self[model.__class__.__name__]
 
     def bulk_save_models(self, models, cls=None):
-        if cls == None:
-            first, ms = peek(models)
-            coll = self._coll(first)
-        else:
-            ms = models
-            coll = self[cls.__name__]
-        coll.insert(m.to_d() for m in ms)
+        if models:
+            if cls == None:
+                cls=models[0].__class__
+            self[cls.__name__].insert(m.to_d() for m in models)
 
     def save(self, model):
         d = model.to_d()
