@@ -21,18 +21,20 @@ class CouchDB(Database):
         d = self.open_doc(_id)
         return cls(d)
 
-    def get_all(self, cls):
-        for doc in self.paged_view('_all_docs',include_docs=True):
+    def get_all(self, cls, limit=None):
+        for doc in self.paged_view('_all_docs',include_docs=True,limit=limit):
             if doc['id'][0]!='_':
                 yield cls(doc['doc'])
 
     def paged_view(self, view_name, page_size=1000, cls=None, **params):
-        #FIXME: This is broken for reduced views that lack ids
-        #FIXME: you can't set a limit with a paged view!
+        orig_limit = params.get('limit',None)
+        yielded = 0
         params['limit']=page_size+1
         if cls:
             params['include_docs']=True
         while True:
+            if orig_limit is not None:
+                params['limit']=min(orig_limit-yielded,page_size+1)
             res = list(self.view(view_name, **params))
             for r in res[0:page_size]:
                 if cls:
@@ -41,6 +43,7 @@ class CouchDB(Database):
                     yield r
             if len(res) != page_size+1:
                 break
+            yielded +=page_size
             last = res[-1]
             params['startkey']=last['key']
-            params['startkey_docid']=last.get('id') # sometimes there is no id
+            params['startkey_docid']=last.get('id')

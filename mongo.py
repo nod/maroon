@@ -31,8 +31,8 @@ class MongoDB(Database):
     def get_id(self, cls, _id):
         return cls(self[cls.__name__].find_one(_id))
 
-    def get_all(self, cls):
-        return self.find(cls,None)
+    def get_all(self, cls, limit=None):
+        return self.find(cls,None,limit)
 
     def find(self, cls, q, limit=None):
         coll = self[cls.__name__]

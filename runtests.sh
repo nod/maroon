@@ -7,8 +7,8 @@ do
     python $t"_tests.py"
 done
 
-echo "not running couch"
-#python database_tests.py couch
+echo "running couch"
+python database_tests.py couch
 
 echo "running mongo"
 python database_tests.py mongo

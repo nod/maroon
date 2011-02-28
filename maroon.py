@@ -379,16 +379,16 @@ class Model(ModelPart):
         return cls.database.get_id(cls,_id)
 
     @classmethod
-    def get_all(cls):
-        return cls.database.get_all(cls)
+    def get_all(cls,limit=None):
+        return cls.database.get_all(cls,limit)
 
     @classmethod
-    def find(cls, q=None):
+    def find(cls, q=None, **kwargs):
         "execute the query - only works with mongodb"
         if q is False or q is True:
             #make sure we didn't call one of python's comparison operators
             raise BogusQuery("The first term in a comparison must be a Property.")
-        return cls.database.find(cls, q.to_mongo_dict() if q else None)
+        return cls.database.find(cls, q.to_mongo_dict() if q else None,**kwargs)
 
     @classmethod
     def paged_view(cls,view_name,**kwargs):
