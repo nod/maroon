@@ -32,9 +32,14 @@ class MongoDB(Database):
         return cls(self[cls.__name__].find_one(_id))
 
     def get_all(self, cls):
+        return self.find(cls,None)
+
+    def find(self, cls, q, limit=None):
         coll = self[cls.__name__]
-        for item in coll.find():
-            yield cls(item)
+        cursor = coll.find(q)
+        if limit != None:
+            cursor = cursor.limit(limit)
+        return (cls(d) for d in cursor)
 
     def in_coll(self, cls, _id):
         return bool(self[cls.__name__].find(dict(_id=_id)).count())

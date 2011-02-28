@@ -4,10 +4,82 @@ by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 '''
 
 from datetime import datetime as _dt
+from collections import defaultdict
+from copy import copy
 import re
 
 
 SLUG_REGEX = re.compile('[\w@\.]+$')
+
+
+class BogusQuery(Exception): pass
+
+
+class Q(dict):
+    def __init__(self, d=None):
+        dict.__init__(self,d)
+
+    def __and__(self, v):
+        for key in set(self)&set(v):
+            if key != '$or':
+                raise BogusQuery( "field %s can't match %s and %s"%(
+                        key, str(self[key]), str(v[key])
+                    ))
+        q = Q(self) #we do not want to modify self or v
+        q.update(v)
+        if self.has_key('$or') and v.has_key('$or'):
+            #combine the things in $or using the distributive property
+            #(a|b)&(c|d) -> (a&c | a&d | b&c | b&d)  
+            q['$or'] = [
+                self_term & v_term
+                for self_term in self['$or']
+                for v_term in v['$or']
+            ]
+        return q
+
+    def __or__(self, v):
+        fixed_self = self._to_distributed_list()
+        fixed_v = v._to_distributed_list()
+        return Q({'$or':fixed_self+fixed_v})
+    
+    def _to_distributed_list(self):
+        #returns a list of Q objects that is equivalent to self if the terms
+        #of the list are ORed together
+        if not self.has_key('$or'):
+            return [self]
+        if len(self) ==1:
+            return self['$or']
+        outer = copy(self)
+        del outer['$or']
+        #mongo does not let you nest or statements - use boolean algebra to
+        #return a "sum of products"
+        return [ (outer & inner) for inner in self['$or']]
+
+    def to_mongo_dict(self):
+        d = defaultdict(dict)
+        for key,val in self.iteritems():
+            #crawl the tree
+            if isinstance(val, Q):
+                mongo_value = val.to_mongo_dict()
+            elif hasattr(val, '__iter__') and not isinstance(val, basestring):
+                mongo_value = [
+                        item.to_mongo_dict() if isinstance(item,Q) else item
+                        for item in val
+                ]
+            else:
+                mongo_value = val
+
+            #expand the tuples
+            if isinstance(key, tuple):
+                if key[0] in self:
+                    raise BogusQuery( "field %s can't be %s and match %s"%(
+                            key[0], str(self[key[0]]), str(val)
+                        ))
+                #convert self[('size','$gte')] to d['size']['$gte'] 
+                d[key[0]][key[1]] = mongo_value
+            else:
+                d[key] = mongo_value
+        return d
 
 
 class Property(object):
@@ -34,6 +106,16 @@ class Property(object):
             #_to_d will only get one parameter, val
             return self._to_d(val)
         return val
+
+    def __eq__(self, v): return Q({self.name: v})
+    def __ge__(self, v): return Q({(self.name, '$gte'):v})
+    def __gt__(self, v): return Q({(self.name, '$gt' ):v})
+    def __le__(self, v): return Q({(self.name, '$lte'):v})
+    def __lt__(self, v): return Q({(self.name, '$lt' ):v})
+    def __ne__(self, v): return Q({(self.name, '$ne' ):v})
+    
+    def is_in(self, terms): return Q({(self.name, '$in' ):terms})
+    def is_not_in(self, terms): return Q({(self.name, '$nin' ):terms})
 
 
 class EnumProperty(Property):
@@ -111,6 +193,9 @@ class TextProperty(Property):
             raise TypeError("value not text")
         return val
 
+    def __floordiv__(self, pattern):
+        return Q({self.name: re.compile(pattern)})
+
 
 class IdProperty(Property):
     pass
@@ -178,6 +263,8 @@ class ListProperty(Property):
         if self._kind and not isinstance(val, self._kind):
             raise TypeError("%s in list is not a %s"%(val,self._kind.__name__))
         return val
+
+    def has_all(self, terms): return Q({(self.name, '$all' ):terms})
 
 
 class SlugListProperty(ListProperty):
@@ -296,8 +383,16 @@ class Model(ModelPart):
         return cls.database.get_all(cls)
 
     @classmethod
+    def find(cls, q=None):
+        "execute the query - only works with mongodb"
+        if q is False or q is True:
+            #make sure we didn't call one of python's comparison operators
+            raise BogusQuery("The first term in a comparison must be a Property.")
+        return cls.database.find(cls, q.to_mongo_dict() if q else None)
+
+    @classmethod
     def paged_view(cls,view_name,**kwargs):
-        "only works with couchdb"
+        "look at a view through an iterator - only works with couchdb"
         return cls.database.paged_view(view_name,cls=cls,**kwargs)
 
 

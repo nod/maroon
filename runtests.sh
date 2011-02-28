@@ -1,11 +1,14 @@
 #!/bin/bash
 export PYTHONPATH=".."
 cd tests
-echo "running basic"
-python basic_tests.py
+for t in basic file query
+do
+    echo "running $t"
+    python $t"_tests.py"
+done
 
-echo "running couch"
+echo "not running couch"
 #python database_tests.py couch
 
-echo "not running mongo"
+echo "running mongo"
 python database_tests.py mongo
