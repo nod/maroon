@@ -177,7 +177,7 @@ class DateTimeProperty(Property):
             return _dt.strptime(val,self._format)
         try:
             return _dt.fromtimestamp(float(val))
-        except ValueError:
+        except TypeError:
             pass # it was not a number
         if len(val) > 2:
             return _dt(*val[:6])

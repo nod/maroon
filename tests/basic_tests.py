@@ -4,6 +4,7 @@ import sys
 sys.path.append("..")
 
 import unittest
+from datetime import datetime
 
 import maroon
 from maroon import Model, IntProperty, Property
@@ -60,7 +61,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.assertRaises(TypeError, setattr, fun, 'enum', 'green')
         self.assertRaises(ValueError, setattr, fun, 'real', 'i')
         self.assertRaises(TypeError, setattr, fun, 'dic', [2,3])
-        self.assertRaises(TypeError, setattr, fun, 'created', 7)
+        self.assertRaises(TypeError, setattr, fun, 'created', [])
         self.assertRaises(TypeError, setattr, fun, 'names', [7,8])
         self.assertRaises(TypeError, setattr, fun, 'names', 13)
         self.assertEqual(fun.enum, None)
@@ -70,6 +71,14 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         fun.part = {'n':'jeff'}
         self.assertEqual(fun.part.age, 7)
         self.assertEqual(fun.part.name, 'jeff')
+
+    def test_date(self):
+        fun = FunModel(date=datetime(2005,1,2,13))
+        self.assertEqual(fun.date, datetime(2005,1,2,13))
+        fun.date = [2005,1,2,16]
+        self.assertEqual(fun.date, datetime(2005,1,2,16))
+        fun.date = 1104660000
+        self.assertEqual(fun.date, datetime(2005,1,2,4))
 
 
 if __name__ == '__main__':
