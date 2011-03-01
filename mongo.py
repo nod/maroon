@@ -20,10 +20,10 @@ class MongoDB(Database):
         if models:
             if cls == None:
                 cls=models[0].__class__
-            self[cls.__name__].insert(m.to_d() for m in models)
+            self[cls.__name__].insert(m.to_d(dateformat="datetime") for m in models)
 
     def save(self, model):
-        d = model.to_d()
+        d = model.to_d(dateformat="datetime")
         self._coll(model).save(d)
         model._id = d['_id'] # save the unique id from mongo
         return model
