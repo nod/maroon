@@ -74,11 +74,16 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
     def test_date(self):
         fun = FunModel(date=datetime(2005,1,2,13))
+        def do_to_d(df):
+            return fun.to_d(dateformat=df)['dt']
         self.assertEqual(fun.date, datetime(2005,1,2,13))
+        self.assertEqual(do_to_d('datetime'), datetime(2005,1,2,13))
         fun.date = [2005,1,2,16]
         self.assertEqual(fun.date, datetime(2005,1,2,16))
+        self.assertEqual(do_to_d('list'),(2005,1,2,16,0,0))
         fun.date = 1104660000
         self.assertEqual(fun.date, datetime(2005,1,2,4))
+        self.assertEqual(do_to_d('epoch'),1104660000) 
 
 
 if __name__ == '__main__':

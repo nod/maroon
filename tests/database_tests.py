@@ -116,7 +116,7 @@ if __name__ == '__main__':
             url = 'http://127.0.0.1:5984/'
             cls = locals()[m]
             cls.database = CouchDB(url+'test_maroon_'+m.lower(),True)
-            #cls.database.flush()
+            cls.database.flush()
     else:
         print "Usage: ./database_tests.py [mongo|couch]"
     if hasattr(FunModel,'database'):

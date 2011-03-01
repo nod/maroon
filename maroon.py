@@ -3,6 +3,7 @@ maroon models - simplified object-relational mapper for Python and MongoDB
 by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 '''
 
+import time
 from datetime import datetime as _dt
 from collections import defaultdict
 from copy import copy
@@ -83,10 +84,9 @@ class Q(dict):
 
 
 class Property(object):
-    def __init__(self, name, default=None, to_d=None, null=True):
+    def __init__(self, name, default=None, null=True):
         self.name = name or None
         self._default = default
-        self._to_d = to_d
         self.null = null
 
     def default(self):
@@ -100,11 +100,8 @@ class Property(object):
             raise ValueError("You can't assign None to an non-null property.")
         return val
 
-    def to_d(self, val):
+    def to_d(self, val, **kwargs):
         "Changes val into something that can go to json.dumps"
-        if self._to_d:
-            #_to_d will only get one parameter, val
-            return self._to_d(val)
         return val
 
     def __eq__(self, v): return Q({self.name: v})
@@ -165,7 +162,7 @@ class DictProperty(TypedProperty):
 
 class DateTimeProperty(Property):
     def  __init__(self, name, format=None, **kwargs):
-        "Creates a DateTimeProperty.  The to_d kwarg is ignored."
+        "Creates a DateTimeProperty. format is a strptime string for decoding"
         Property.__init__(self, name, **kwargs)
         self._format = format
 
@@ -184,8 +181,16 @@ class DateTimeProperty(Property):
         raise TypeError("value %r isn't a datetime"%val)
 
 
-    def to_d(self, val):
-        return val.timetuple()[0:6]
+    def to_d(self, val, **kwargs):
+        format = kwargs.get('dateformat',None)
+        if format=="datetime":
+            return val
+        elif format=="epoch":
+            return time.mktime(val.timetuple())
+        elif format in (None,"list"):
+            return val.timetuple()[0:6]
+        else:
+            return val.strftime(format)
 
 
 class TextProperty(Property):
@@ -326,14 +331,14 @@ class ModelPart(object):
                 v = field.validated(v)
         self.__dict__[n] = v
 
-    def to_d(self):
+    def to_d(self, **kwargs):
         'Build a dictionary from all the properties attached to self.'
         d = dict()
         for name in dir(self):
             val = getattr(self,name)
             prop = getattr(type(self),name,None)
             if val is not None and prop is not None and isinstance(prop, Property):
-                d[prop.name]=prop.to_d(val)
+                d[prop.name]=prop.to_d(val, **kwargs)
         return d
 
     def update(self,d):
@@ -350,8 +355,8 @@ class ModelProperty(TypedProperty):
     def default(self):
         return self.kind(from_dict=self._default)
 
-    def to_d(self, val):
-        return val.to_d()
+    def to_d(self, val, **kwargs):
+        return val.to_d(**kwargs)
 
     def validated(self, val):
         val = Property.validated(self, val)
