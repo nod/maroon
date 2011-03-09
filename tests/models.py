@@ -23,6 +23,7 @@ class FunModel(Model):
     '''
     enum = EnumProperty("e", ["red", "blue"])
     real = FloatProperty("f")
+    date = DateTimeProperty("dt")
     dic = DictProperty("d")
     created = CreatedAtProperty("ca")
     names = ListProperty("ns", basestring)

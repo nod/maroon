@@ -66,7 +66,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.failUnlessEqual( result.int2, None)
 
     def test_get_all(self):
-        for name in ['pumba','zazu']:
+        for name in ['pumba','zazu','rafiki']:
             m = PersonModel(name=name, age=(10+len(name)))
             m.save()
 
@@ -75,6 +75,10 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.failUnlessEqual( people[0].age, 14)
         self.failUnlessEqual( people[1].name, 'pumba')
         self.failUnlessEqual( people[1].age, 15)
+        self.failUnlessEqual( people[2].name, 'rafiki')
+        self.failUnlessEqual( people[2].age, 16)
+        people = list(PersonModel.get_all(limit=2))
+        self.failUnlessEqual( len(people), 2)
 
     def test_fun_model(self):
         dic = {"one":2, 'three':"four", 'five':["six",7]}
@@ -102,15 +106,19 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
 if __name__ == '__main__':
     db = sys.argv[1]
+    models = ('SimpleModel', 'FunModel', 'PersonModel')
     if db=='mongo':
         Model.database = MongoDB(None,'test_maroon')
-        for m in ('SimpleModel', 'FunModel', 'PersonModel'):
+        for m in models:
             Model.database[m].remove()
     elif db=='couch':
-        Model.database = CouchDB('http://127.0.0.1:5984/test_maroon',True)
-        Model.database.flush()
+        for m in models:
+            url = 'http://127.0.0.1:5984/'
+            cls = locals()[m]
+            cls.database = CouchDB(url+'test_maroon_'+m.lower(),True)
+            cls.database.flush()
     else:
         print "Usage: ./database_tests.py [mongo|couch]"
-    if hasattr(Model,'database'):
+    if hasattr(FunModel,'database'):
         del sys.argv[1]
         unittest.main()

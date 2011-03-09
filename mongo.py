@@ -20,10 +20,10 @@ class MongoDB(Database):
         if models:
             if cls == None:
                 cls=models[0].__class__
-            self[cls.__name__].insert(m.to_d() for m in models)
+            self[cls.__name__].insert(m.to_d(dateformat="datetime") for m in models)
 
     def save(self, model):
-        d = model.to_d()
+        d = model.to_d(dateformat="datetime")
         self._coll(model).save(d)
         model._id = d['_id'] # save the unique id from mongo
         return model
@@ -32,10 +32,15 @@ class MongoDB(Database):
         item = self[cls.__name__].find_one(_id)
         return cls(item) if item else None
 
-    def get_all(self, cls):
+    def get_all(self, cls, limit=None):
+        return self.find(cls,None,limit)
+
+    def find(self, cls, q, limit=None):
         coll = self[cls.__name__]
-        for item in coll.find():
-            yield cls(item)
+        cursor = coll.find(q)
+        if limit != None:
+            cursor = cursor.limit(limit)
+        return (cls(d) for d in cursor)
 
     def in_coll(self, cls, _id):
         return bool(self[cls.__name__].find(dict(_id=_id)).count())
