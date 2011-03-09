@@ -29,7 +29,8 @@ class MongoDB(Database):
         return model
 
     def get_id(self, cls, _id):
-        return cls(self[cls.__name__].find_one(_id))
+        item = self[cls.__name__].find_one(_id)
+        return cls(item) if item else None
 
     def get_all(self, cls):
         coll = self[cls.__name__]

@@ -307,6 +307,6 @@ class ModelCache(dict):
         self.Class = Class
 
     def __missing__(self, key):
-        obj = self.Class.get_id(str(key))
+        obj = self.Class.get_id(key)
         self[key] = obj
         return obj
