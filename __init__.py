@@ -1,4 +1,12 @@
 from maroon import *
 from tee import TeeDB
-from mongo import MongoDB
-from couch import CouchDB
+
+try:
+    from mongo import MongoDB
+except ImportError:
+    pass
+
+try:
+    from couch import CouchDB
+except ImportError:
+    pass

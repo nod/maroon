@@ -3,7 +3,12 @@ maroon models - simplified object-relational mapper for Python and MongoDB
 by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 '''
 
-import json, itertools
+try:
+    import simplejson as json
+except:
+    import json
+
+import itertools
 
 
 class TeeDB(object):
