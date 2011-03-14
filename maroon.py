@@ -397,7 +397,11 @@ class Model(ModelPart):
         if q is False or q is True:
             #make sure we didn't call one of python's comparison operators
             raise BogusQuery("The first term in a comparison must be a Property.")
-        return cls.database.find(cls, q.to_mongo_dict() if q else None,**kwargs)
+        try:
+            q = q.to_mongo_dict()
+        except AttributeError:
+            pass
+        return cls.database.find(cls, q, **kwargs)
 
     @classmethod
     def paged_view(cls,view_name,**kwargs):
