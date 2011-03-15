@@ -113,6 +113,14 @@ class Property(object):
     
     def is_in(self, terms): return Q({(self.name, '$in' ):terms})
     def is_not_in(self, terms): return Q({(self.name, '$nin' ):terms})
+    def exists(self): return Q({(self.name, '$exists' ):1})
+
+    def range(self, start=None, end=None):
+        "create a query to find objects where start<=val<end"
+        if start is None:
+            return self.exists() if end is None else (self<end)
+        else:
+            return self>=start if end is None else (self>=start) & (self<end)
 
 
 class EnumProperty(Property):
