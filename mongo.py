@@ -34,11 +34,15 @@ class MongoDB(Database):
     def get_all(self, cls, limit=None):
         return self.find(cls,None,limit)
 
-    def find(self, cls, q, limit=None, sort=None):
+    def find(self, cls, q, limit=None, sort=None, **kwargs):
         coll = self[cls.__name__]
-        cursor = coll.find(q)
+        cursor = coll.find(q, **kwargs)
         if sort !=None:
-            cursor = cursor.sort(sort)
+            try:
+                name = sort.name
+            except AttributeError:
+                name = sort
+            cursor = cursor.sort(name)
         if limit != None:
             cursor = cursor.limit(limit)
         return (cls(d) for d in cursor)

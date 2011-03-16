@@ -117,7 +117,6 @@ class TestQueries(unittest.TestCase):
         self.failUnlessEqual(range(11), _query_to_list(n.range()))
         self.failUnlessEqual([8,9,10], _query_to_list(n.range(start=8)))
         self.failUnlessEqual([0,1], _query_to_list(n.range(end=2)))
-        import pdb; pdb.set_trace()
         self.failUnlessEqual([5,6], _query_to_list(n.range(5,7)))
 
     def test_mongo_dict(self):
@@ -125,6 +124,11 @@ class TestQueries(unittest.TestCase):
             {'n':{'$gte':3,'$lte':5}}))
         self.failUnlessEqual(range(11), _query_to_list({}))
 
+    def test_sort(self):
+        sorted = [nm.n for nm in NumberModel.find(sort=NumberModel.n)]
+        self.failUnlessEqual(range(11), sorted)
+        results = NumberModel.find(NumberModel.n.range(4,8),sort='quad')
+        self.failUnlessEqual([0,1,1,4], [nm.quad for nm in results])
 
 
 if __name__ == '__main__':
