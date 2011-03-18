@@ -5,6 +5,7 @@ by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 
 import pymongo
 from pymongo.database import Database
+from pymongo import ASCENDING, DESCENDING
 
 
 class MongoDB(Database):
@@ -34,7 +35,7 @@ class MongoDB(Database):
     def get_all(self, cls, limit=None):
         return self.find(cls,None,limit)
 
-    def find(self, cls, q, limit=None, sort=None, **kwargs):
+    def find(self, cls, q, limit=None, sort=None, descending=False, **kwargs):
         coll = self[cls.__name__]
         cursor = coll.find(q, **kwargs)
         if sort !=None:
@@ -42,7 +43,7 @@ class MongoDB(Database):
                 name = sort.name
             except AttributeError:
                 name = sort
-            cursor = cursor.sort(name)
+            cursor = cursor.sort(name,DESCENDING if descending else ASCENDING)
         if limit != None:
             cursor = cursor.limit(limit)
         return (cls(d) for d in cursor)
