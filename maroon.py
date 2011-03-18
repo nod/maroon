@@ -113,7 +113,7 @@ class Property(object):
     
     def is_in(self, terms): return Q({(self.name, '$in' ):terms})
     def is_not_in(self, terms): return Q({(self.name, '$nin' ):terms})
-    def exists(self): return Q({(self.name, '$exists' ):1})
+    def exists(self,exists=True): return Q({(self.name, '$exists' ):exists})
 
     def range(self, start=None, end=None):
         "create a query to find objects where start<=val<end"
@@ -396,8 +396,8 @@ class Model(ModelPart):
         return cls.database.get_id(cls,_id)
 
     @classmethod
-    def get_all(cls,limit=None):
-        return cls.database.get_all(cls,limit)
+    def get_all(cls,**kwargs):
+        return cls.database.get_all(cls,**kwargs)
 
     @classmethod
     def find(cls, q=None, **kwargs):
