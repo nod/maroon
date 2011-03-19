@@ -298,6 +298,7 @@ class SlugListProperty(ListProperty):
 
 
 class ModelPart(object):
+    ignored = ()
     def __new__(kind, *args, **kwargs):
         #FIXME: properties cannot be added to a Model at runtime!
         if 'long_names' not in kind.__dict__:
@@ -316,6 +317,7 @@ class ModelPart(object):
         #set defaults
         for name in self.long_names.values():
             if name not in self.__dict__:
+                prop = getattr(type(self),name)
                 self.__dict__[name] = prop.default()
 
     def __setattr__(self, n, v):
@@ -328,11 +330,17 @@ class ModelPart(object):
     def to_d(self, **kwargs):
         'Build a dictionary from all the properties attached to self.'
         d = dict()
-        for name in dir(self):
-            val = getattr(self,name)
-            prop = getattr(type(self),name,None)
-            if val is not None and prop is not None and isinstance(prop, Property):
+        model = type(self)
+        for name,val in self.__dict__.iteritems():
+            if val is None or name in self.ignored: continue
+            prop = getattr(model,name,None)
+            if isinstance(prop, Property):
                 d[prop.name]=prop.to_d(val, **kwargs)
+            else:
+                try:
+                    d[name]=val.to_d()
+                except AttributeError:
+                    d[name]=val
         return d
 
     def update(self,d):

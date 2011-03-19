@@ -92,7 +92,6 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
                 names=names,
                 )
         fun.part=PersonModel(name="scar", age=32)
-        import pdb;pdb.set_trace()
         fun.save()
         fun = FunModel.get_id("fun")
         self.failUnlessEqual( fun.enum, 'red')

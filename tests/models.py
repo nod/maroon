@@ -10,6 +10,7 @@ class SimpleModel(Model):
     '''
     int1 = IntProperty("i1")
     int2 = IntProperty("i2")
+    ignored = ['secret']
 
 
 class PersonModel(Model):
