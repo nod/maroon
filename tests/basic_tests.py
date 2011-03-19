@@ -58,6 +58,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
 
     def test_fun_model(self):
         fun = FunModel()
+        fun.part = PersonModel()
         self.assertRaises(TypeError, setattr, fun, 'enum', 'green')
         self.assertRaises(ValueError, setattr, fun, 'real', 'i')
         self.assertRaises(TypeError, setattr, fun, 'dic', [2,3])

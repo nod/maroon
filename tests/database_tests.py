@@ -92,6 +92,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
                 names=names,
                 )
         fun.part=PersonModel(name="scar", age=32)
+        import pdb;pdb.set_trace()
         fun.save()
         fun = FunModel.get_id("fun")
         self.failUnlessEqual( fun.enum, 'red')
@@ -108,7 +109,7 @@ if __name__ == '__main__':
     db = sys.argv[1]
     models = ('SimpleModel', 'FunModel', 'PersonModel')
     if db=='mongo':
-        Model.database = MongoDB(None,'test_maroon')
+        Model.database = MongoDB(None,'test_maroon', port=2727)
         for m in models:
             Model.database[m].remove()
     elif db=='couch':

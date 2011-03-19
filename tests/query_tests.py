@@ -132,7 +132,7 @@ class TestQueries(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    Model.database = MongoDB(None,'test_maroon')
+    Model.database = MongoDB(None,'test_maroon',port=2727)
     Model.database.NumberModel.remove()
     _number_set_up()
     unittest.main()

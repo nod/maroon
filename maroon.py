@@ -86,11 +86,12 @@ class Q(dict):
 class Property(object):
     def __init__(self, name, default=None, null=True):
         self.name = name or None
-        self._default = default
+        if default is not None:
+            self.default = lambda: default
         self.null = null
 
     def default(self):
-        return self._default
+        return None
 
     def validated(self, val):
         """Subclasses raise TypeError or ValueError if they are sent invalid
@@ -314,23 +315,8 @@ class ModelPart(object):
 
         #set defaults
         for name in self.long_names.values():
-            old_val = getattr(self,name,None)
-            prop = getattr(type(self),name,None)
-            if old_val is None and prop is not None:
-                val = prop.default()
-                if val is not None:
-                    self.__dict__[name] = val
-
-    def __getattribute__(self, name):
-        '''Hide Propertys in instances of Models.'''
-        #here be dragons - if you say self.anything, infinite recursion happens
-        value = object.__getattribute__(self,name)
-        #if name is not an instance variable, then we check if it is a Property
-        if isinstance(value, Property):
-            self_dict = object.__getattribute__(self,'__dict__')
-            if not self_dict.has_key(name):
-                return None
-        return value
+            if name not in self.__dict__:
+                self.__dict__[name] = prop.default()
 
     def __setattr__(self, n, v):
         field = getattr(type(self),n,None)
@@ -357,11 +343,10 @@ class ModelPart(object):
 
 
 class ModelProperty(TypedProperty):
-    def __init__(self, name, part, **kwargs):
+    def __init__(self, name, part, default=None, **kwargs):
         TypedProperty.__init__(self, name, part, **kwargs)
-
-    def default(self):
-        return self.kind(from_dict=self._default)
+        if default is not None:
+            self.default = lambda: self.kind(from_dict=default)
 
     def to_d(self, val, **kwargs):
         return val.to_d(**kwargs)

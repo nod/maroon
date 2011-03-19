@@ -18,7 +18,8 @@ class TestTee(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.mkdtemp()
         self.path = self.dir+"/log"
-        maroon.Model.database = TeeDB(self.path, MongoDB(None,'test_maroon'))
+        maroon.Model.database = TeeDB(self.path, MongoDB(None,'test_maroon',port=2727))
+        maroon.Model.database.PersonModel.remove()
 
     def tearDown(self):
         os.remove(self.path)
@@ -53,6 +54,4 @@ class TestTee(unittest.TestCase):
         self.failUnlessEqual(50, g.age)
 
 if __name__ == '__main__':
-    db = MongoDB(None,'test_maroon')
-    db.PersonModel.remove()
     unittest.main()
