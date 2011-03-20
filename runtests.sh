@@ -7,6 +7,9 @@ do
     python $t"_tests.py"
 done
 
+echo "running mock"
+python database_tests.py mock
+
 echo "running couch"
 python database_tests.py couch
 

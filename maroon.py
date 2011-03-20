@@ -294,18 +294,15 @@ class SlugListProperty(ListProperty):
                 )
         return val
 
+class ModelMetaclass(type):
+    def __init__(cls, name, bases, d):
+        type.__init__(cls,name, bases, d)
+        cls.update_long_names()
 
 class ModelPart(object):
+    __metaclass__=ModelMetaclass
     ignored = ()
-    def __new__(kind, *args, **kwargs):
-        #FIXME: properties cannot be added to a Model at runtime!
-        if 'long_names' not in kind.__dict__:
-            kind.long_names = {}
-            for name in dir(kind):
-                prop = getattr(kind,name)
-                if isinstance(prop, Property):
-                    kind.long_names[prop.name] = name
-        return object.__new__(kind)
+    long_names = {}
 
     def __init__(self, from_dict=None, **kwargs):
         if from_dict:
@@ -324,6 +321,14 @@ class ModelPart(object):
             if v is not None:
                 v = field.validated(v)
         self.__dict__[n] = v
+
+    @classmethod
+    def update_long_names(cls):
+        cls.long_names = {}
+        for name in dir(cls):
+            prop = getattr(cls,name)
+            if isinstance(prop, Property):
+                cls.long_names[prop.name] = name
 
     def to_d(self, **kwargs):
         'Build a dictionary from all the properties attached to self.'

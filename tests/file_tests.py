@@ -66,7 +66,7 @@ class TestMock(unittest.TestCase):
         SimpleModel(int1=3).save()
         res = list(SimpleModel.get_all())
         self.failUnlessEqual(len(res),1)
-        self.failUnlessEqual(res.to_d(),{'i1':3})
+        self.failUnlessEqual(res[0].int1,3)
 
     def test_load_json(self):
         res = PersonModel.get_all()
