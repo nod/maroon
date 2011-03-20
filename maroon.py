@@ -8,6 +8,7 @@ from datetime import datetime as _dt
 from collections import defaultdict
 from copy import copy
 import re
+import pprint
 
 
 SLUG_REGEX = re.compile('[\w@\.]+$')
@@ -326,6 +327,9 @@ class ModelPart(object):
             if v is not None:
                 v = field.validated(v)
         self.__dict__[n] = v
+
+    def __repr__(self):
+        return pprint.pformat(self.to_d())
 
     def to_d(self, **kwargs):
         'Build a dictionary from all the properties attached to self.'
