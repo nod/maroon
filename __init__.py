@@ -1,5 +1,6 @@
 from maroon import *
 from tee import TeeDB
+from mock import MockDB
 
 try:
     from mongo import MongoDB

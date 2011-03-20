@@ -10,9 +10,17 @@ import glob
 class MockDB(object):
     """Read a tiny database from the filesystem, and modify it in-memory.
     This class is only for testing and debuging purposes!"""
-    def __init__(self, path=None):
-        #FIXME: use the path to read json
+    def __init__(self, path=None, module=None):
         self.data = defaultdict(dict)
+        if path and module:
+            for filepath in glob.glob(path+"/*.json"):
+                self._import_json(filepath,module)
+
+    def _import_json(self,path,module):
+        name = path.rpartition('/')[2].replace(".json","")
+        cls = getattr(module,name)
+        for line in open(path):
+            self.save(cls(from_dict=json.loads(line)))
 
     def bulk_save_models(self, models, cls=None):
         for m in models:
@@ -31,7 +39,6 @@ class MockDB(object):
         return self.find(cls,None,**kwargs)
 
     def find(self, cls, q, limit=None, sort=None, descending=False, **kwargs):
-        #import pdb;pdb.set_trace()
         long_names = cls.long_names
         if q:
             try:
