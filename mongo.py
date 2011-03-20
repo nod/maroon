@@ -38,6 +38,10 @@ class MongoDB(Database):
 
     def find(self, cls, q, limit=None, sort=None, descending=False, **kwargs):
         coll = self[cls.__name__]
+        try:
+            q = q.to_mongo_dict()
+        except AttributeError:
+            pass
         cursor = coll.find(q, **kwargs)
         if sort !=None:
             try:

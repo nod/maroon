@@ -60,9 +60,7 @@ class Q(dict):
         d = defaultdict(dict)
         for key,val in self.iteritems():
             #crawl the tree
-            if isinstance(val, Q):
-                mongo_value = val.to_mongo_dict()
-            elif hasattr(val, '__iter__') and not isinstance(val, basestring):
+            if isinstance(val, list):
                 mongo_value = [
                         item.to_mongo_dict() if isinstance(item,Q) else item
                         for item in val
@@ -398,10 +396,6 @@ class Model(ModelPart):
         if q is False or q is True:
             #make sure we didn't call one of python's comparison operators
             raise BogusQuery("The first term in a comparison must be a Property.")
-        try:
-            q = q.to_mongo_dict()
-        except AttributeError:
-            pass
         return cls.database.find(cls, q, **kwargs)
 
     @classmethod
