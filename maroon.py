@@ -8,6 +8,7 @@ from datetime import datetime as _dt
 from collections import defaultdict
 from copy import copy
 import re
+import pprint
 
 
 SLUG_REGEX = re.compile('[\w@\.]+$')
@@ -294,10 +295,12 @@ class SlugListProperty(ListProperty):
                 )
         return val
 
+
 class ModelMetaclass(type):
     def __init__(cls, name, bases, d):
         type.__init__(cls,name, bases, d)
         cls.update_long_names()
+
 
 class ModelPart(object):
     __metaclass__=ModelMetaclass
@@ -321,6 +324,9 @@ class ModelPart(object):
             if v is not None:
                 v = field.validated(v)
         self.__dict__[n] = v
+
+    def __repr__(self):
+        return pprint.pformat(self.to_d())
 
     @classmethod
     def update_long_names(cls):
