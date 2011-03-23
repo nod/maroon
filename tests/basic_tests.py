@@ -50,14 +50,24 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.failUnlessEqual(self.o1.to_d(), {'i1':1})
 
     def test_init_from_dict(self):
-        obj1 = SimpleModel({'i1':2})
+        obj1 = SimpleModel({'int1':2})
         obj2 = SimpleModel(dict(i1=3,i2=7))
         self.failUnlessEqual( 2, obj1.int1 )
         self.failUnlessEqual( 3, obj2.int1 )
         self.failUnlessEqual( 7, obj2.int2 )
 
+    def test_ignored(self):
+        o = SimpleModel(int1=17, i2=13, secret=42, keep=100)
+        self.failUnlessEqual( 17, o.int1 )
+        self.failUnlessEqual( 13, o.int2 )
+        self.assertRaises(AttributeError, getattr, o, 'i2')
+        self.failUnlessEqual( 100, o.keep )
+        self.failUnlessEqual( 42, o.secret )
+        self.failUnlessEqual( o.to_d(), {'i1':17,'i2':13,'keep':100})
+
     def test_fun_model(self):
         fun = FunModel()
+        fun.part = PersonModel()
         self.assertRaises(TypeError, setattr, fun, 'enum', 'green')
         self.assertRaises(ValueError, setattr, fun, 'real', 'i')
         self.assertRaises(TypeError, setattr, fun, 'dic', [2,3])

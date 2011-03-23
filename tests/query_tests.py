@@ -4,6 +4,7 @@ import sys
 sys.path.append("..")
 
 from mongo import MongoDB
+from mock import MockDB
 import unittest
 
 import maroon
@@ -112,9 +113,28 @@ class TestQueries(unittest.TestCase):
         self.failUnlessEqual( [6], _query_to_list(
             factors.has_all([2,3]) ))
 
+    def test_range(self):
+        n = NumberModel.n
+        self.failUnlessEqual(range(11), _query_to_list(n.range()))
+        self.failUnlessEqual([8,9,10], _query_to_list(n.range(start=8)))
+        self.failUnlessEqual([0,1], _query_to_list(n.range(end=2)))
+        self.failUnlessEqual([5,6], _query_to_list(n.range(5,7)))
+
+    def test_mongo_dict(self):
+        self.failUnlessEqual([3,4,5], _query_to_list(
+            {'n':{'$gte':3,'$lte':5}}))
+        self.failUnlessEqual(range(11), _query_to_list({}))
+
+    def test_sort(self):
+        sorted = [nm.n for nm in NumberModel.find(sort=NumberModel.n)]
+        self.failUnlessEqual(range(11), sorted)
+        results = NumberModel.find(NumberModel.n.range(4,8),sort='quad')
+        self.failUnlessEqual([0,1,1,4], [nm.quad for nm in results])
+
 
 if __name__ == '__main__':
-    Model.database = MongoDB(None,'test_maroon')
-    Model.database.NumberModel.remove()
+    Model.database = MockDB(None)
+    #Model.database = MongoDB(None,'test_maroon',port=2727)
+    #Model.database.NumberModel.remove()
     _number_set_up()
     unittest.main()

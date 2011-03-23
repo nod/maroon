@@ -8,6 +8,7 @@ from datetime import datetime as _dt
 from collections import defaultdict
 from copy import copy
 import re
+import pprint
 
 
 SLUG_REGEX = re.compile('[\w@\.]+$')
@@ -60,9 +61,7 @@ class Q(dict):
         d = defaultdict(dict)
         for key,val in self.iteritems():
             #crawl the tree
-            if isinstance(val, Q):
-                mongo_value = val.to_mongo_dict()
-            elif hasattr(val, '__iter__') and not isinstance(val, basestring):
+            if isinstance(val, list):
                 mongo_value = [
                         item.to_mongo_dict() if isinstance(item,Q) else item
                         for item in val
@@ -86,11 +85,12 @@ class Q(dict):
 class Property(object):
     def __init__(self, name, default=None, null=True):
         self.name = name or None
-        self._default = default
+        if default is not None:
+            self.default = lambda: default
         self.null = null
 
     def default(self):
-        return self._default
+        return None
 
     def validated(self, val):
         """Subclasses raise TypeError or ValueError if they are sent invalid
@@ -113,6 +113,14 @@ class Property(object):
     
     def is_in(self, terms): return Q({(self.name, '$in' ):terms})
     def is_not_in(self, terms): return Q({(self.name, '$nin' ):terms})
+    def exists(self,exists=True): return Q({(self.name, '$exists' ):exists})
+
+    def range(self, start=None, end=None):
+        "create a query to find objects where start<=val<end"
+        if start is None:
+            return self.exists() if end is None else (self<end)
+        else:
+            return self>=start if end is None else (self>=start) & (self<end)
 
 
 class EnumProperty(Property):
@@ -288,16 +296,16 @@ class SlugListProperty(ListProperty):
         return val
 
 
+class ModelMetaclass(type):
+    def __init__(cls, name, bases, d):
+        type.__init__(cls,name, bases, d)
+        cls.update_long_names()
+
+
 class ModelPart(object):
-    def __new__(kind, *args, **kwargs):
-        #FIXME: properties cannot be added to a Model at runtime!
-        if 'long_names' not in kind.__dict__:
-            kind.long_names = {}
-            for name in dir(kind):
-                prop = getattr(kind,name)
-                if isinstance(prop, Property):
-                    kind.long_names[prop.name] = name
-        return object.__new__(kind)
+    __metaclass__=ModelMetaclass
+    ignored = ()
+    long_names = {}
 
     def __init__(self, from_dict=None, **kwargs):
         if from_dict:
@@ -306,23 +314,9 @@ class ModelPart(object):
 
         #set defaults
         for name in self.long_names.values():
-            old_val = getattr(self,name,None)
-            prop = getattr(type(self),name,None)
-            if old_val is None and prop is not None:
-                val = prop.default()
-                if val is not None:
-                    self.__dict__[name] = val
-
-    def __getattribute__(self, name):
-        '''Hide Propertys in instances of Models.'''
-        #here be dragons - if you say self.anything, infinite recursion happens
-        value = object.__getattribute__(self,name)
-        #if name is not an instance variable, then we check if it is a Property
-        if isinstance(value, Property):
-            self_dict = object.__getattribute__(self,'__dict__')
-            if not self_dict.has_key(name):
-                return None
-        return value
+            if name not in self.__dict__:
+                prop = getattr(type(self),name)
+                self.__dict__[name] = prop.default()
 
     def __setattr__(self, n, v):
         field = getattr(type(self),n,None)
@@ -331,14 +325,31 @@ class ModelPart(object):
                 v = field.validated(v)
         self.__dict__[n] = v
 
+    def __repr__(self):
+        return pprint.pformat(self.to_d())
+
+    @classmethod
+    def update_long_names(cls):
+        cls.long_names = {}
+        for name in dir(cls):
+            prop = getattr(cls,name)
+            if isinstance(prop, Property):
+                cls.long_names[prop.name] = name
+
     def to_d(self, **kwargs):
         'Build a dictionary from all the properties attached to self.'
         d = dict()
-        for name in dir(self):
-            val = getattr(self,name)
-            prop = getattr(type(self),name,None)
-            if val is not None and prop is not None and isinstance(prop, Property):
+        model = type(self)
+        for name,val in self.__dict__.iteritems():
+            if val is None or name in self.ignored: continue
+            prop = getattr(model,name,None)
+            if isinstance(prop, Property):
                 d[prop.name]=prop.to_d(val, **kwargs)
+            else:
+                try:
+                    d[name]=val.to_d()
+                except AttributeError:
+                    d[name]=val
         return d
 
     def update(self,d):
@@ -349,11 +360,10 @@ class ModelPart(object):
 
 
 class ModelProperty(TypedProperty):
-    def __init__(self, name, part, **kwargs):
+    def __init__(self, name, part, default=None, **kwargs):
         TypedProperty.__init__(self, name, part, **kwargs)
-
-    def default(self):
-        return self.kind(from_dict=self._default)
+        if default is not None:
+            self.default = lambda: self.kind(from_dict=default)
 
     def to_d(self, val, **kwargs):
         return val.to_d(**kwargs)
@@ -388,8 +398,8 @@ class Model(ModelPart):
         return cls.database.get_id(cls,_id)
 
     @classmethod
-    def get_all(cls,limit=None):
-        return cls.database.get_all(cls,limit)
+    def get_all(cls,**kwargs):
+        return cls.database.get_all(cls,**kwargs)
 
     @classmethod
     def find(cls, q=None, **kwargs):
@@ -397,7 +407,7 @@ class Model(ModelPart):
         if q is False or q is True:
             #make sure we didn't call one of python's comparison operators
             raise BogusQuery("The first term in a comparison must be a Property.")
-        return cls.database.find(cls, q.to_mongo_dict() if q else None,**kwargs)
+        return cls.database.find(cls, q, **kwargs)
 
     @classmethod
     def paged_view(cls,view_name,**kwargs):

@@ -1,5 +1,5 @@
 import couchdbkit
-from couchdbkit import Database
+from couchdbkit import Database, ResourceNotFound
 
 
 class CouchDB(Database):
@@ -18,8 +18,11 @@ class CouchDB(Database):
         self.bulk_save(ds)
 
     def get_id(self, cls, _id):
-        d = self.open_doc(_id)
-        return cls(d)
+        try:
+            d = self.open_doc(_id)
+            return cls(d)
+        except ResourceNotFound:
+            return None
 
     def get_all(self, cls, limit=None):
         for doc in self.paged_view('_all_docs',include_docs=True,limit=limit):
