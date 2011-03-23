@@ -32,7 +32,7 @@ class MockDB(object):
         self.data[model.__class__.__name__][model._id] = model
         return model
 
-    def get_id(self, cls, _id):
+    def get_id(self, cls, _id, **kwargs):
         return self.data[cls.__name__].get(_id,None)
 
     def get_all(self, cls, **kwargs):

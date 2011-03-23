@@ -394,8 +394,8 @@ class Model(ModelPart):
         return cls.database.in_coll(cls, _id)
 
     @classmethod
-    def get_id(cls, _id):
-        return cls.database.get_id(cls,_id)
+    def get_id(cls, _id, **kwargs):
+        return cls.database.get_id(cls,_id, **kwargs)
 
     @classmethod
     def get_all(cls,**kwargs):

@@ -29,8 +29,8 @@ class MongoDB(Database):
         model._id = d['_id'] # save the unique id from mongo
         return model
 
-    def get_id(self, cls, _id):
-        d = self[cls.__name__].find_one(_id)
+    def get_id(self, cls, _id, **kwargs):
+        d = self[cls.__name__].find_one(_id, **kwargs)
         return cls(d) if d else None
 
     def get_all(self, cls, **kwargs):
