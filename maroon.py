@@ -58,6 +58,7 @@ class Q(dict):
         return [ (outer & inner) for inner in self['$or']]
 
     def to_mongo_dict(self):
+        "take the query and turn it into a mongo-style dictionary"
         d = defaultdict(dict)
         for key,val in self.iteritems():
             #crawl the tree
@@ -104,6 +105,13 @@ class Property(object):
         "Changes val into something that can go to json.dumps"
         return val
 
+    def __repr__(self):
+        default = self.default()
+        if default is None:
+            return "%s(%r)"%(self.__class__.__name__, self.name)
+        else:
+            return "%s(%r,%r)"%(self.__class__.__name__,self.name,default)
+
     def __eq__(self, v): return Q({self.name: v})
     def __ge__(self, v): return Q({(self.name, '$gte'):v})
     def __gt__(self, v): return Q({(self.name, '$gt' ):v})
@@ -117,9 +125,12 @@ class Property(object):
 
     def range(self, start=None, end=None):
         "create a query to find objects where start<=val<end"
+        if end is not None:
+            end = self.validated(end)
         if start is None:
-            return self.exists() if end is None else (self<end)
+            return Q({}) if end is None else (self<end)
         else:
+            start = self.validated(start)
             return self>=start if end is None else (self>=start) & (self<end)
 
 
@@ -141,12 +152,7 @@ class TypedProperty(Property):
         self.kind = kind
 
     def validated(self, val):
-        val = Property.validated(self, val)
-        ret = self.kind(val)
-        if ret != val:
-            raise TypeError("value %r not %s"%(val,self.kind.__name__))
-        return ret
-
+        return self.kind(Property.validated(self, val))
 
 class BoolProperty(TypedProperty):
     def  __init__(self, name, **kwargs):

@@ -119,6 +119,11 @@ class TestQueries(unittest.TestCase):
         self.failUnlessEqual([8,9,10], _query_to_list(n.range(start=8)))
         self.failUnlessEqual([0,1], _query_to_list(n.range(end=2)))
         self.failUnlessEqual([5,6], _query_to_list(n.range(5,7)))
+        self.failUnlessEqual([3,4], _query_to_list(n.range("3","5")))
+        self.failUnlessEqual( range(11), _query_to_list(
+            n.range()|(n==5) ))
+        self.failUnlessEqual( [5], _query_to_list(
+            n.range()&(n==5) ))
 
     def test_mongo_dict(self):
         self.failUnlessEqual([3,4,5], _query_to_list(
