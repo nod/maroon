@@ -97,6 +97,8 @@ class TestQueries(unittest.TestCase):
         n = NumberModel.n
         self.failUnlessEqual( [1,4,5,9], _query_to_list(
             n.is_in([1,4,5,9]) ))
+        self.failUnlessEqual( [3,4,6,8,9], _query_to_list(
+            NumberModel.factors.is_in([3,4]) ))
 
     def test_is_not_in(self):
         n = NumberModel.n
