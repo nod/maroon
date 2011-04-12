@@ -386,10 +386,16 @@ class Model(ModelPart):
     _rev = IdProperty('_rev')
 
     def save(self):
+        "Save the model to the database, may overwrite existing objects"
         return self.database.save(self)
 
     def delete(self):
+        "remove the object from the database"
         return self.database.delete_id(self.__class__.__name__,self._id)
+
+    def merge(self):
+        "Use this object to update an object that is already in the database."
+        return self.database.merge(self)
 
     @classmethod
     def bulk_save(cls, models):
