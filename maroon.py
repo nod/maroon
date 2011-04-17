@@ -326,7 +326,8 @@ class ModelPart(object):
         self.__dict__[n] = v
 
     def __repr__(self):
-        return pprint.pformat(self.to_d())
+        d = pprint.pformat(self.to_d())
+        return "%s(%s)"%(self.__class__.__name__,d)
 
     @classmethod
     def update_long_names(cls):
@@ -375,6 +376,14 @@ class ModelProperty(TypedProperty):
         return val
 
 
+class ModelListProperty(ListProperty):
+    def __init__(self, name, kind=ModelPart, **kwargs):
+        ListProperty.__init__(self, name, kind, **kwargs)
+
+    def to_d(self, val, **kwargs):
+        return [x.to_d(**kwargs) for x in val]
+
+
 class Model(ModelPart):
     _id = IdProperty("_id")
     _rev = IdProperty('_rev')
@@ -392,6 +401,10 @@ class Model(ModelPart):
     @classmethod
     def in_db(cls,_id):
         return cls.database.in_coll(cls, _id)
+    
+    @classmethod
+    def __contains__(cls,_id):
+        return cls.in_db(_id)
 
     @classmethod
     def get_id(cls, _id, **kwargs):
