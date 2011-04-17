@@ -29,6 +29,15 @@ class MongoDB(Database):
         model._id = d['_id'] # save the unique id from mongo
         return model
 
+    def merge(self, model):
+        d = model.to_d(dateformat="datetime")
+        del d['_id']
+        self._coll(model).find_and_modify(
+            {'_id':model._id},
+            {'$set':d},
+            upsert=True,
+            )
+
     def get_id(self, cls, _id, **kwargs):
         d = self[cls.__name__].find_one(_id, **kwargs)
         return cls(d) if d else None

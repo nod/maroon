@@ -40,6 +40,15 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         ob = SimpleModel.get_id("mustafa")
         self.failUnlessEqual(3, ob.int2)
 
+    def test_merge(self):
+        f = FunModel(_id='7',enum='red')
+        f.save()
+        g = FunModel(_id='7',dic={'three':4})
+        g.merge()
+        ob = FunModel.get_id('7').to_d()
+        del ob['ca']
+        self.failUnlessEqual(ob, dict(_id='7', e='red', d={'three':4}))
+
     def test_missing_fields(self):
         obj1 = SimpleModel({'_id':'simba','i1':2})
         obj1.save()

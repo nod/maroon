@@ -97,6 +97,8 @@ class TestQueries(unittest.TestCase):
         n = NumberModel.n
         self.failUnlessEqual( [1,4,5,9], _query_to_list(
             n.is_in([1,4,5,9]) ))
+        self.failUnlessEqual( [3,4,6,8,9], _query_to_list(
+            NumberModel.factors.is_in([3,4]) ))
 
     def test_is_not_in(self):
         n = NumberModel.n
@@ -119,6 +121,11 @@ class TestQueries(unittest.TestCase):
         self.failUnlessEqual([8,9,10], _query_to_list(n.range(start=8)))
         self.failUnlessEqual([0,1], _query_to_list(n.range(end=2)))
         self.failUnlessEqual([5,6], _query_to_list(n.range(5,7)))
+        self.failUnlessEqual([3,4], _query_to_list(n.range("3","5")))
+        self.failUnlessEqual( range(11), _query_to_list(
+            n.range()|(n==5) ))
+        self.failUnlessEqual( [5], _query_to_list(
+            n.range()&(n==5) ))
 
     def test_mongo_dict(self):
         self.failUnlessEqual([3,4,5], _query_to_list(

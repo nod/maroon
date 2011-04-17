@@ -66,6 +66,8 @@ class MockDB(object):
     def in_coll(self, cls, _id):
         return _id in self.data[cls.__name__]
 
+def _list_if_needed(v):
+    return v if isinstance(v,list) else [v]
 
 _mongo_ops = {
     '$lte':operator.le,
@@ -73,8 +75,8 @@ _mongo_ops = {
     '$ne':operator.ne,
     '$gte':operator.ge,
     '$gt':operator.gt,
-    '$in':lambda v,l: v in l,
-    '$nin':lambda v,l: v not in l,
+    '$in':lambda v,l: any(x in l for x in _list_if_needed(v)),
+    '$nin':lambda v,l: all(x not in l for x in _list_if_needed(v)),
     '$exists':lambda v,x: bool(x)==(v is not None),
     '$all':lambda l,g: all(v in l for v in g),
     }
