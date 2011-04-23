@@ -6,8 +6,9 @@ from collections import defaultdict
 from operator import attrgetter
 import operator
 import glob
+from maroondb import MaroonDB, ASCENDING, DESCENDING
 
-class MockDB(object):
+class MockDB(MaroonDB):
     """Read a tiny database from the filesystem, and modify it in-memory.
     This class is only for testing and debuging purposes!"""
     def __init__(self, path=None, module=None):
@@ -35,10 +36,7 @@ class MockDB(object):
     def get_id(self, cls, _id):
         return self.data[cls.__name__].get(_id,None)
 
-    def get_all(self, cls, **kwargs):
-        return self.find(cls,None,**kwargs)
-
-    def find(self, cls, q, limit=None, sort=None, descending=False, **kwargs):
+    def find(self, cls, q=None, limit=None, **kwargs):
         long_names = cls.long_names
         if q:
             try:
@@ -51,14 +49,13 @@ class MockDB(object):
                 ]
         else:
             results = self.data[cls.__name__].values()
-        if sort is not None:
-            try:
-                name = sort.name
-            except AttributeError:
-                name = sort
-            results.sort(
-                key=attrgetter(long_names.get(name)),
-                reverse=descending)
+        sort_args = self._sort_key_list(**kwargs)
+        if sort_args:
+            sort_args.reverse()
+            for name,dir in sort_args:
+                results.sort(
+                    key=attrgetter(long_names.get(name)),
+                    reverse=(dir==DESCENDING))
         if limit is not None:
             results = results[0:limit]
         return results

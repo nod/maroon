@@ -133,10 +133,18 @@ class TestQueries(unittest.TestCase):
         self.failUnlessEqual(range(11), _query_to_list({}))
 
     def test_sort(self):
+        #sort by property
         sorted = [nm.n for nm in NumberModel.find(sort=NumberModel.n)]
         self.failUnlessEqual(range(11), sorted)
-        results = NumberModel.find(NumberModel.n.range(4,8),sort='quad')
-        self.failUnlessEqual([0,1,1,4], [nm.quad for nm in results])
+        #sort by a field name
+        subset = NumberModel.n.range(4,8)
+        res = NumberModel.find(subset,sort='quad')
+        self.failUnlessEqual([0,1,1,4], [nm.quad for nm in res])
+        #sort by a list of fields
+        res = NumberModel.find(subset,sort_list=['quad',NumberModel.n])
+        self.failUnlessEqual([5,4,6,7], [nm.n for nm in res])
+        res = NumberModel.find(subset,sort_list=['quad',('n',maroon.DESCENDING)])
+        self.failUnlessEqual([5,6,4,7], [nm.n for nm in res])
 
 
 if __name__ == '__main__':
