@@ -8,6 +8,7 @@ from mock import MockDB
 import unittest
 
 import maroon
+import maroondb
 from maroon import Model, TextProperty, IntProperty, ListProperty, BogusQuery
 
 
@@ -143,7 +144,7 @@ class TestQueries(unittest.TestCase):
         #sort by a list of fields
         res = NumberModel.find(subset,sort_list=['quad',NumberModel.n])
         self.failUnlessEqual([5,4,6,7], [nm.n for nm in res])
-        res = NumberModel.find(subset,sort_list=['quad',('n',maroon.DESCENDING)])
+        res = NumberModel.find(subset,sort_list=['quad',('n',maroondb.DESCENDING)])
         self.failUnlessEqual([5,6,4,7], [nm.n for nm in res])
 
 

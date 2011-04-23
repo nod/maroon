@@ -5,6 +5,13 @@ except ImportError:
     ASCENDING, DESCENDING = 1,-1
 
 class MaroonDB(object):
+    def merge(self, model):
+        old = self.get_id(model.__class__,model._id)
+        d = model.to_d(dateformat="datetime")
+        d.pop('_rev',None)
+        old.update(d)
+        old.save()
+
     def get_all(self, cls, **kwargs):
         return self.find(cls,None,**kwargs)
 

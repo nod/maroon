@@ -11,7 +11,7 @@ class MongoDB(pymongo.database.Database,MaroonDB):
     def __init__(self, connection=None, name='maroon', **kwargs):
         if connection==None:
             connection = pymongo.Connection(**kwargs)
-        Database.__init__(self,connection,name)
+        pymongo.database.Database.__init__(self,connection,name)
 
     def _coll(self, model):
         return self[model.__class__.__name__]
