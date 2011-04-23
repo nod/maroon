@@ -41,18 +41,15 @@ class MongoDB(pymongo.database.Database,MaroonDB):
         d = self[cls.__name__].find_one(_id)
         return cls(d) if d else None
 
-    def find(self, cls, q=None, limit=None, **kwargs):
+    def find(self, cls, q=None, **kwargs):
         coll = self[cls.__name__]
         try:
             q = q.to_mongo_dict()
         except AttributeError:
             pass
-        cursor = coll.find(q, **kwargs)
         sort_args = self._sort_key_list(**kwargs)
-        if sort_args:
-            cursor.sort(sort_args)
-        if limit:
-            cursor.limit(limit)
+        kwargs.pop("sort",None)
+        cursor = coll.find(q, sort=sort_args, **kwargs)
         return (cls(d) for d in cursor)
 
     def in_coll(self, cls, _id):

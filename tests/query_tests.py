@@ -149,8 +149,12 @@ class TestQueries(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    Model.database = MockDB(None)
-    #Model.database = MongoDB(None,'test_maroon',port=2727)
-    #Model.database.NumberModel.remove()
+    db = sys.argv[1]
+    if db=='mongo':
+        Model.database = MongoDB(None,'test_maroon',port=2727)
+        Model.database.NumberModel.remove()
+    elif db=='mock':
+        Model.database = MockDB(None)
     _number_set_up()
+    del sys.argv[1]
     unittest.main()

@@ -15,13 +15,13 @@ class MaroonDB(object):
     def get_all(self, cls, **kwargs):
         return self.find(cls,None,**kwargs)
 
-    def _sort_key_list(self, sort=None, sort_list=None, descending=False):
+    def _sort_key_list(self, sort=None, sort_list=None, desc=False, **kwargs):
         if sort_list and sort:
             raise ValueError("Do not set sort_list and sort parameters.")
         if sort:
-            return [(_field_name(sort),DESCENDING if descending else ASCENDING)]
+            return [(_field_name(sort),DESCENDING if desc else ASCENDING)]
         elif sort_list:
-            return [_sort_key_item(x,descending) for x in sort_list]
+            return [_sort_key_item(x,desc) for x in sort_list]
         else:
             return []
 
