@@ -37,8 +37,8 @@ class MongoDB(pymongo.database.Database,MaroonDB):
             upsert=True,
             )
 
-    def get_id(self, cls, _id):
-        d = self[cls.__name__].find_one(_id)
+    def get_id(self, cls, _id, **kwargs):
+        d = self[cls.__name__].find_one(_id, **kwargs)
         return cls(d) if d else None
 
     def find(self, cls, q=None, **kwargs):

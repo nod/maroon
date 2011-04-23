@@ -18,9 +18,9 @@ class CouchDB(Database,MaroonDB):
             ds.append(d)
         self.bulk_save(ds)
 
-    def get_id(self, cls, _id):
+    def get_id(self, cls, _id, **kwargs):
         try:
-            d = self.open_doc(_id)
+            d = self.open_doc(_id, **kwargs)
             return cls(d)
         except ResourceNotFound:
             return None

@@ -33,7 +33,7 @@ class MockDB(MaroonDB):
         self.data[model.__class__.__name__][model._id] = model
         return model
 
-    def get_id(self, cls, _id):
+    def get_id(self, cls, _id, **kwargs):
         return self.data[cls.__name__].get(_id,None)
 
     def find(self, cls, q=None, limit=None, **kwargs):
