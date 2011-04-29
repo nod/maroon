@@ -95,6 +95,12 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.assertEqual(fun.date, datetime(2005,1,2,4))
         self.assertEqual(do_to_d('epoch'),1104660000) 
 
+    def test_long_names(self):
+        self.o1.int1 = 3
+        self.failUnlessEqual(self.o1.to_d(long_names=True), {'int1':3})
+        self.failUnlessEqual(SimpleModel.long_names,
+                {'i1':'int1','i2':'int2','_rev':'_rev','_id':'_id'})
+
 
 if __name__ == '__main__':
     unittest.main()

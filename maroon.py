@@ -351,7 +351,8 @@ class ModelPart(object):
             if val is None or name in self.ignored: continue
             prop = getattr(model,name,None)
             if isinstance(prop, Property):
-                d[prop.name]=prop.to_d(val, **kwargs)
+                key = name if kwargs.get('long_names') else prop.name
+                d[key]=prop.to_d(val, **kwargs)
             else:
                 try:
                     d[name]=val.to_d()
@@ -388,6 +389,11 @@ class ModelListProperty(ListProperty):
 
     def to_d(self, val, **kwargs):
         return [x.to_d(**kwargs) for x in val]
+                                                                                
+    def validated_item(self, val):
+        if not isinstance(val, self._kind):
+            return self._kind(val)
+        return val
 
 
 class Model(ModelPart):
