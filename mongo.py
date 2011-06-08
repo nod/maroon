@@ -4,15 +4,14 @@ by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 '''
 
 import pymongo
-from pymongo.database import Database
-from pymongo import ASCENDING, DESCENDING
+from maroondb import MaroonDB
 
 
-class MongoDB(Database):
+class MongoDB(pymongo.database.Database,MaroonDB):
     def __init__(self, connection=None, name='maroon', **kwargs):
         if connection==None:
             connection = pymongo.Connection(**kwargs)
-        Database.__init__(self,connection,name)
+        pymongo.database.Database.__init__(self,connection,name)
 
     def _coll(self, model):
         return self[model.__class__.__name__]
@@ -66,4 +65,3 @@ class MongoDB(Database):
 
     def in_coll(self, cls, _id):
         return bool(self[cls.__name__].find(dict(_id=_id)).count())
-

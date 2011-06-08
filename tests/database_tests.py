@@ -47,6 +47,7 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         g.merge()
         ob = FunModel.get_id('7').to_d()
         del ob['ca']
+        ob.pop('_rev',None)
         self.failUnlessEqual(ob, dict(_id='7', e='red', d={'three':4}))
 
     def test_missing_fields(self):

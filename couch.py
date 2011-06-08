@@ -1,8 +1,9 @@
 import couchdbkit
 from couchdbkit import Database, ResourceNotFound
+from maroondb import MaroonDB
 
 
-class CouchDB(Database):
+class CouchDB(Database,MaroonDB):
     def save(self, model):
         d = model.to_d()
         self.save_doc(d)
