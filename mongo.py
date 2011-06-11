@@ -4,7 +4,7 @@ by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 '''
 
 import pymongo
-from maroondb import MaroonDB
+from maroondb import MaroonDB, ASCENDING, DESCENDING
 
 
 class MongoDB(pymongo.database.Database,MaroonDB):
