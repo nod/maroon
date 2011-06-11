@@ -187,7 +187,7 @@ class DateTimeProperty(Property):
         if self._format and isinstance(val,basestring):
             return _dt.strptime(val,self._format)
         try:
-            return _dt.fromtimestamp(float(val))
+            return _dt.utcfromtimestamp(float(val))
         except TypeError:
             pass # it was not a number
         if len(val) > 2:
@@ -200,7 +200,7 @@ class DateTimeProperty(Property):
         if format=="datetime":
             return val
         elif format=="epoch":
-            return time.mktime(val.timetuple())
+            return time.gmtime(val.timetuple())
         elif format in (None,"list"):
             return val.timetuple()[0:6]
         else:
