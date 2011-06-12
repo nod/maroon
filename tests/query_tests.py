@@ -46,7 +46,7 @@ class TestQueries(unittest.TestCase):
         self.failUnlessEqual( [4,5,10], _query_to_list(
             (n>3) & (name//'^[tf]') )
         )
-   
+
     def test_impossible(self):
         n = NumberModel.n
         self.failUnlessRaises( BogusQuery,

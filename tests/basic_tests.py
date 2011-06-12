@@ -26,10 +26,10 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.o1.int1 = 5
         self.assertEqual(self.o1.int1, 5)
 
-        # now test for changing to an obvious integer 
+        # now test for changing to an obvious integer
         self.o1.int1 = 9
         self.assertEqual(self.o1.int1, 9)
-    
+
     def test_simple_arith(self):
         self.o1.int1 = 6
         self.failUnlessEqual( 7, 1+self.o1.int1)
@@ -92,8 +92,8 @@ class TestBasicModelCreationAndAssignment(unittest.TestCase):
         self.assertEqual(fun.date, datetime(2005,1,2,16))
         self.assertEqual(do_to_d('list'),(2005,1,2,16,0,0))
         fun.date = 1104660000
-        self.assertEqual(fun.date, datetime(2005,1,2,4))
-        self.assertEqual(do_to_d('epoch'),1104660000) 
+        self.assertEqual(fun.date, datetime(2005,1,2,10))
+        self.assertEqual(do_to_d('epoch'),1104660000)
 
     def test_long_names(self):
         self.o1.int1 = 3
