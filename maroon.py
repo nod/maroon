@@ -3,7 +3,7 @@ maroon models - simplified object-relational mapper for Python and MongoDB
 by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 '''
 
-import time
+import calendar
 from datetime import datetime as _dt
 from collections import defaultdict
 from copy import copy
@@ -31,7 +31,7 @@ class Q(dict):
         q.update(v)
         if self.has_key('$or') and v.has_key('$or'):
             #combine the things in $or using the distributive property
-            #(a|b)&(c|d) -> (a&c | a&d | b&c | b&d)  
+            #(a|b)&(c|d) -> (a&c | a&d | b&c | b&d)
             q['$or'] = [
                 self_term & v_term
                 for self_term in self['$or']
@@ -43,7 +43,7 @@ class Q(dict):
         fixed_self = self._to_distributed_list()
         fixed_v = v._to_distributed_list()
         return Q({'$or':fixed_self+fixed_v})
-    
+
     def _to_distributed_list(self):
         #returns a list of Q objects that is equivalent to self if the terms
         #of the list are ORed together
@@ -76,7 +76,7 @@ class Q(dict):
                     raise BogusQuery( "field %s can't be %s and match %s"%(
                             key[0], str(self[key[0]]), str(val)
                         ))
-                #convert self[('size','$gte')] to d['size']['$gte'] 
+                #convert self[('size','$gte')] to d['size']['$gte']
                 d[key[0]][key[1]] = mongo_value
             else:
                 d[key] = mongo_value
@@ -118,7 +118,7 @@ class Property(object):
     def __le__(self, v): return Q({(self.name, '$lte'):v})
     def __lt__(self, v): return Q({(self.name, '$lt' ):v})
     def __ne__(self, v): return Q({(self.name, '$ne' ):v})
-    
+
     def is_in(self, terms): return Q({(self.name, '$in' ):terms})
     def is_not_in(self, terms): return Q({(self.name, '$nin' ):terms})
     def exists(self,exists=True): return Q({(self.name, '$exists' ):exists})
@@ -200,7 +200,7 @@ class DateTimeProperty(Property):
         if format=="datetime":
             return val
         elif format=="epoch":
-            return time.gmtime(val.timetuple())
+            return calendar.timegm(val.timetuple())
         elif format in (None,"list"):
             return val.timetuple()[0:6]
         else:
@@ -389,7 +389,7 @@ class ModelListProperty(ListProperty):
 
     def to_d(self, val, **kwargs):
         return [x.to_d(**kwargs) for x in val]
-                                                                                
+
     def validated_item(self, val):
         if not isinstance(val, self._kind):
             return self._kind(val)
@@ -419,7 +419,7 @@ class Model(ModelPart):
     @classmethod
     def in_db(cls,_id):
         return cls.database.in_coll(cls, _id)
-    
+
     @classmethod
     def __contains__(cls,_id):
         return cls.in_db(_id)

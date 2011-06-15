@@ -4,7 +4,7 @@ by Jeremy Kelley <jeremy@33ad.org> and Jeff McGee <JeffAMcGee@gmail.com>
 '''
 
 import pymongo
-from maroondb import MaroonDB, ASCENDING, DESCENDING
+from maroondb import MaroonDB
 
 
 class MongoDB(pymongo.database.Database,MaroonDB):
@@ -44,23 +44,21 @@ class MongoDB(pymongo.database.Database,MaroonDB):
     def get_all(self, cls, **kwargs):
         return self.find(cls,None,**kwargs)
 
-    def find(self, cls, q, limit=None, sort=None, descending=False, where=None, **kwargs):
+    def find(self, cls, q, limit=None, where=None, **kwargs):
         coll = self[cls.__name__]
         try:
             q = q.to_mongo_dict()
         except AttributeError:
             pass
+        sort_args = self._sort_key_list(**kwargs)
+        kwargs.pop('sort',None)
         cursor = coll.find(q, **kwargs)
-        if sort !=None:
-            try:
-                name = sort.name
-            except AttributeError:
-                name = sort
-            cursor = cursor.sort(name,DESCENDING if descending else ASCENDING)
+        if sort_args:
+           cursor.sort(sort_args)
         if where != None:
-            cursor = cursor.where(where)
+            cursor.where(where)
         if limit != None:
-            cursor = cursor.limit(limit)
+            cursor.limit(limit)
         return (cls(d) for d in cursor)
 
     def in_coll(self, cls, _id):
