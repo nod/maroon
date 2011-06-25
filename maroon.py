@@ -433,6 +433,11 @@ class Model(ModelPart):
         return cls.database.get_all(cls,**kwargs)
 
     @classmethod
+    def coll(cls):
+        "Get the collection - only works for mongo-esque databases"
+        return cls.database[cls.__name__]
+
+    @classmethod
     def find(cls, q=None, **kwargs):
         "execute the query - only works with mongodb"
         if q is False or q is True:
